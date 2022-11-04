@@ -55,6 +55,30 @@ export const constantRoutes = [
     }]
   },
 
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/scenario',
+    children: [{
+      path: 'scenario',
+      name: 'Scenario',
+      component: () => import('@/views/scenario/index'),
+      meta: { title: '场景', icon: 'dashboard' }
+    }]
+  },
+
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/training',
+    children: [{
+      path: 'training',
+      name: 'Training',
+      component: () => import('@/views/training/index'),
+      meta: { title: '训练', icon: 'dashboard' }
+    }]
+  },
+
   // {
   //   path: '/',
   //   component: Layout,

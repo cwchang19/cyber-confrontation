@@ -1,6 +1,6 @@
 <template>
     <div class="mainpage-container">
-        123
+        <h1>首页</h1>
     </div>
 </template>
 
