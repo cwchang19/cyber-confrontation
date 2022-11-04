@@ -2,10 +2,10 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/PanJiaChen/vue-admin-template.git
+git clone git@github.com:cwchang19/cyber-confrontation-user.git
 
 # 进入项目目录
-cd vue-admin-template
+cd cyber-confrontation-user
 
 # 安装依赖
 npm install
