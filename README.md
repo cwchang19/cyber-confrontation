@@ -7,13 +7,16 @@ git clone git@github.com:cwchang19/cyber-confrontation-user.git
 # 进入项目目录
 cd cyber-confrontation-user
 
-# 安装依赖，三选一，一个安装不了就换另一个
+# 安装依赖，四选一，一个安装不了就换另一个
 npm install
 npm install --registry=https://registry.npm.taobao.org
 cnpm install
+pnpm install
 
 # 启动服务
 npm run dev
+
+# 可能会出现缺少 core-js，单独安装就行 cnpm i core-js -D
 ```
 
 浏览器访问 [http://localhost:9528](http://localhost:9528)
