@@ -1,7 +1,7 @@
 ## Build Setup
 
 ```bash
-# 克隆项目
+# 用ssh克隆项目，用 https://github.com/cwchang19/cyber-confrontation-user.git 克隆的话推送不稳定，常常会超时
 git clone git@github.com:cwchang19/cyber-confrontation-user.git
 
 # 进入项目目录
