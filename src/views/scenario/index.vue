@@ -1,7 +1,7 @@
 <template>
     <div class="scenario-container">
         <h1>
-            场景
+            场景1
         </h1>
     </div>
 </template>
