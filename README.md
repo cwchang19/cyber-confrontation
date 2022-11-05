@@ -1,7 +1,7 @@
 ## Build Setup
 
 ```bash
-# 用ssh克隆项目，用 https://github.com/cwchang19/cyber-confrontation.git 克隆推送不稳定
+# 建议用ssh克隆项目，用 https://github.com/cwchang19/cyber-confrontation.git 克隆推送不稳定
 # 克隆主分支 main
 git clone git@github.com:cwchang19/cyber-confrontation.git
 # 或克隆前台分支 front
