@@ -1,7 +1,7 @@
 <template>
-    <div class="training-container">
+    <div class="action-container">
         <h1>
-            训练
+            动作空间管理
         </h1>
     </div>
 </template>

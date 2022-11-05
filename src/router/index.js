@@ -58,24 +58,36 @@ export const constantRoutes = [
   {
     path: '/',
     component: Layout,
-    redirect: '/scenario',
+    redirect: '/action',
     children: [{
-      path: 'scenario',
-      name: 'Scenario',
-      component: () => import('@/views/scenario/index'),
-      meta: { title: '场景', icon: 'dashboard' }
+      path: 'action',
+      name: 'Action',
+      component: () => import('@/views/action/index'),
+      meta: { title: '动作空间管理', icon: 'dashboard' }
     }]
   },
 
   {
     path: '/',
     component: Layout,
-    redirect: '/training',
+    redirect: '/algorithm',
     children: [{
-      path: 'training',
-      name: 'Training',
-      component: () => import('@/views/training/index'),
-      meta: { title: '训练', icon: 'dashboard' }
+      path: 'algorithm',
+      name: 'Algorithm',
+      component: () => import('@/views/algorithm/index'),
+      meta: { title: '算法管理', icon: 'dashboard' }
+    }]
+  },
+
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/user',
+    children: [{
+      path: 'user',
+      name: 'User',
+      component: () => import('@/views/user/index'),
+      meta: { title: '用户管理', icon: 'dashboard' }
     }]
   },
 

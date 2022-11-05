@@ -1,7 +1,7 @@
 <template>
-    <div class="scenario-container">
+    <div class="user-container">
         <h1>
-            场景1
+            用户管理
         </h1>
     </div>
 </template>
