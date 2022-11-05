@@ -1,11 +1,11 @@
 ## Build Setup
 
 ```bash
-# 用ssh克隆项目，用 https://github.com/cwchang19/cyber-confrontation-user.git 克隆推送不稳定
-git clone git@github.com:cwchang19/cyber-confrontation-user.git
+# 用ssh克隆项目，用 https://github.com/cwchang19/cyber-confrontation.git 克隆推送不稳定
+git clone git@github.com:cwchang19/cyber-confrontation.git
 
 # 进入项目目录
-cd cyber-confrontation-user
+cd cyber-confrontation
 
 # 安装依赖，四选一，一个安装不了就换另一个
 npm install
