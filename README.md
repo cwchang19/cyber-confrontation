@@ -6,9 +6,8 @@
 git clone git@github.com:cwchang19/cyber-confrontation.git
 # 或克隆前台分支 front
 git clone -b front git@github.com:cwchang19/cyber-confrontation.git
-# 或克隆后台分支 front
+# 或克隆后台分支 back
 git clone -b back git@github.com:cwchang19/cyber-confrontation.git
-
 
 # 进入项目目录
 cd cyber-confrontation
