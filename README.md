@@ -17,6 +17,7 @@ pnpm install
 npm run dev
 
 # 可能会出现缺少 core-js，单独安装就行 cnpm i core-js -D
+test
 ```
 
 浏览器访问 [http://localhost:9528](http://localhost:9528)
