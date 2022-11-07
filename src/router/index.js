@@ -31,6 +31,17 @@ import Layout from '@/layout'
  * all roles can be accessed
  */
 export const constantRoutes = [
+  { // 标签刷新用
+    path: '/redirect',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '/redirect/:path(.*)',
+        component: () => import('@/views/redirect/index')
+      }
+    ]
+  },
   {
     path: '/login',
     component: () => import('@/views/login/index'),
@@ -42,41 +53,80 @@ export const constantRoutes = [
     component: () => import('@/views/404'),
     hidden: true
   },
-  
+
   {
     path: '/',
     component: Layout,
-    redirect: '/mainpage',
+    // redirect: '/mainpage',
     children: [{
       path: 'mainpage',
       name: 'Mainpage',
       component: () => import('@/views/mainpage/index'),
-      meta: { title: '首页', icon: 'dashboard' }
+      meta: { title: '首页', icon: 'dashboard', affix: true }
     }]
   },
 
   {
-    path: '/',
+    path: '/scenario',
     component: Layout,
-    redirect: '/scenario',
-    children: [{
-      path: 'scenario',
-      name: 'Scenario',
-      component: () => import('@/views/scenario/index'),
-      meta: { title: '场景', icon: 'dashboard' }
-    }]
+    redirect: '/scenario/index',
+    name: 'Scenario',
+    meta: {
+      title: '场景',
+      icon: 'dashboard'
+    },
+    children: [
+      {
+        path: 'edit/:id(\\d+)',
+        component: () => import('@/views/scenario/edit'),
+        name: 'EditScenario',
+        meta: { title: '修改场景', activeMenu: '/scenario/index' },
+        hidden: true,
+        beforeEnter: (to, from, next) => {
+          if (to.params.id) to.meta.title = '修改场景-' + to.params.id;
+          next();
+        }
+      },
+      {
+        path: 'add/:id(\\d+)',
+        component: () => import('@/views/scenario/add'),
+        name: 'AddScenario',
+        meta: { title: '新增场景', activeMenu: '/scenario/index' },
+        hidden: true,
+      },
+      {
+        path: 'index',
+        component: () => import('@/views/scenario/index'),
+        name: 'ScenerioList',
+        meta: { title: '场景', icon: 'dashboard' },
+      }
+    ]
   },
 
   {
-    path: '/',
+    path: '/training',
     component: Layout,
-    redirect: '/training',
-    children: [{
-      path: 'training',
-      name: 'Training',
-      component: () => import('@/views/training/index'),
-      meta: { title: '训练', icon: 'dashboard' }
-    }]
+    redirect: '/training/index',
+    name: 'Training',
+    meta: {
+      title: '训练',
+      icon: 'dashboard'
+    },
+    children: [
+      {
+        path: 'add/:id(\\d+)',
+        component: () => import('@/views/training/add'),
+        name: 'AddTraining',
+        meta: { title: '新增训练', activeMenu: '/training/index' },
+        hidden: true,
+      },
+      {
+        path: 'index',
+        component: () => import('@/views/training/index'),
+        name: 'TrainingList',
+        meta: { title: '训练', icon: 'dashboard' }
+      }
+    ]
   },
 
   // {
