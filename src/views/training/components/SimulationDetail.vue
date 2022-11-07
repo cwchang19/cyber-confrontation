@@ -7,6 +7,9 @@
           <div slot="header" class="clearfix">
             <span>历史训练</span>
           </div>
+          <el-select v-model="historyId" value-key="" placeholder="请选择历史训练" filterable @change="" style="width: 100%;">
+          </el-select>
+          
         </el-card>
       </el-col>
       <el-col :span="18" :offset="0" class="content-col">
@@ -33,42 +36,17 @@ export default {
   data() {
     return {
       tempRoute: {},
-      scenarioForm: {
-        nodeNum: 0,
-        subnetNum: 0,
-        infiltrateLevel: 0,
-        protectionLevel: 0,
-        targetNum: 0,
-        vulnerabilityNum: 0,
-      },
-      formItem: [
-        {key: 'nodeNum', label: '节点数'},
-        {key: 'subnetNum', label: '子网数'},
-        {key: 'infiltrateLevel', label: '渗透级数'},
-        {key: 'protectionLevel', label: '保护等级'},
-        {key: 'targetNum', label: '目标节点数'},
-        {key: 'vulnerabilityNum', label: '漏洞数'},
-      ]
+      historyId: null,
     }
   },
   created() {
-    if(this.isEdit) {
-      const scenarioId = this.$route.params && this.$route.params.id;
-      // 根据 id 请求场景信息
-      this.scenarioForm.nodeNum = scenarioId;
-      this.scenarioForm.subnetNum = scenarioId;
-      this.scenarioForm.infiltrateLevel = scenarioId;
-      this.scenarioForm.protectionLevel = scenarioId;
-      this.scenarioForm.targetNum = scenarioId;
-      this.scenarioForm.vulnerabilityNum = scenarioId;
-    }
     this.tempRoute = Object.assign({}, this.$route)
   }
 }
 </script>
 
 <style scoped>
-.scenario-detail-container {
+.training-simulation-detail-container {
   padding: 0 1rem 0 1rem;
 }
 
@@ -82,15 +60,5 @@ export default {
 
 .el-card {
   height: 100%;
-}
-
-.clearfix:before,
-.clearfix:after {
-  display: table;
-  content: "";
-}
-
-.clearfix:after {
-  clear: both
 }
 </style>
