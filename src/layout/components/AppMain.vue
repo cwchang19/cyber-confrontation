@@ -4,7 +4,7 @@
       <!-- <keep-alive :include="cachedViews">
         <router-view :key="key"/>
       </keep-alive> -->
-      <keep-alive :max="20">
+      <keep-alive :max="10">
         <router-view :key="key"/>
       </keep-alive>
     </transition>

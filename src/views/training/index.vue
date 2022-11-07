@@ -1,13 +1,8 @@
 <template>
     <div class="training-container">
-        <router-link :to="'/training/add/1'">
-            <el-button type="success" size="small">
-                新增1
-            </el-button>
-        </router-link>
-        <router-link :to="'/training/add/2'">
-            <el-button type="success" size="small">
-                新增2
+        <router-link :to="'/training/add/' + randomStr">
+            <el-button type="success" size="small" @click="randomStr = getRandomStr()">
+                新增
             </el-button>
         </router-link>
         <router-link :to="'/training/simulation/1'">
@@ -26,6 +21,16 @@
 <script>
     export default {
         name: 'Training',
+        data() {
+            return {
+                randomStr: this.getRandomStr(),
+            }
+        },
+        methods: {
+            getRandomStr() {
+                return Math.random().toString(36).slice(-8);
+            }
+        }
     }
 </script>
 

@@ -1,14 +1,9 @@
 <template>
   <div class="scenario-container">
-
-    <router-link :to="'/scenario/add/1'">
-      <el-button type="success" size="small">
-        新增1
-      </el-button>
-    </router-link>
-    <router-link :to="'/scenario/add/2'">
-      <el-button type="success" size="small">
-        新增2
+    
+    <router-link :to="'/scenario/add/' + randomStr">
+      <el-button type="success" size="small" @click="randomStr = getRamdomStr()">
+        新增
       </el-button>
     </router-link>
     <router-link :to="'/scenario/edit/1'">
@@ -43,9 +38,13 @@ export default {
   components: {},
   data() {
     return {
+      randomStr: this.getRamdomStr(),
     }
   },
   methods: {
+    getRamdomStr() {
+      return Math.random().toString(36).slice(-8);
+    }
   }
 }
 </script>

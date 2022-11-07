@@ -88,7 +88,7 @@ export const constantRoutes = [
         }
       },
       {
-        path: 'add/:id(\\d+)',
+        path: 'add/:str',
         component: () => import('@/views/scenario/add'),
         name: 'AddScenario',
         meta: { title: '新增场景', activeMenu: '/scenario/index' },
@@ -114,7 +114,7 @@ export const constantRoutes = [
     },
     children: [
       {
-        path: 'add/:id(\\d+)',
+        path: 'add/:str',
         component: () => import('@/views/training/add'),
         name: 'AddTraining',
         meta: { title: '新增训练', activeMenu: '/training/index' },
