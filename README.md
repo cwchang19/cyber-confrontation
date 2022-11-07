@@ -1,20 +1,28 @@
+# 网络对抗
 ## Build Setup
 
 ```bash
-# 克隆项目
-git clone https://github.com/PanJiaChen/vue-admin-template.git
+# 建议用ssh克隆项目，用 https://github.com/cwchang19/cyber-confrontation.git 克隆推送不稳定
+# 克隆主分支 main
+git clone git@github.com:cwchang19/cyber-confrontation.git
+# 或克隆前台分支 front
+git clone -b front git@github.com:cwchang19/cyber-confrontation.git
+# 或克隆后台分支 back
+git clone -b back git@github.com:cwchang19/cyber-confrontation.git
 
 # 进入项目目录
-cd vue-admin-template
+cd cyber-confrontation
 
-# 安装依赖
+# 安装依赖，四选一，一个安装不了就换另一个
 npm install
-
-# 建议不要直接使用 cnpm 安装以来，会有各种诡异的 bug。可以通过如下操作解决 npm 下载速度慢的问题
 npm install --registry=https://registry.npm.taobao.org
+cnpm install
+pnpm install
 
 # 启动服务
 npm run dev
+
+# 可能会出现缺少 core-js，单独安装就行 cnpm i core-js -D
 ```
 
 浏览器访问 [http://localhost:9528](http://localhost:9528)
