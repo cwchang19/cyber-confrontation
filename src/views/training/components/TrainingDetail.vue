@@ -24,7 +24,7 @@
                 </el-form-item>
                 <el-form-item label="配置动作空间" size="normal" prop="isActionConfigSet">
                   <el-button :type="getActionConfigButtonType" size="default" icon="el-icon-edit" plain
-                    @click="actionDialogVisible = true" style="width: 100%">
+                    @click="openActionDialog" style="width: 100%">
                     修改动作空间配置
                   </el-button>
                 </el-form-item>
@@ -72,7 +72,7 @@
                 </el-form-item>
               </div>
               <div class="card-content-step2" v-show="active === 2">
-                <el-alert title="请确认填写的训练设置" type="info" description="确认填写的训练设置无误后点击下方“开始训练”即可开启后台训练。" show-icon
+                <el-alert title="请确认填写的训练设置" type="warning" description="确认填写的训练设置无误后点击下方“开始训练”即可开启后台训练。" show-icon
                   :closable="false">
                 </el-alert>
                 <el-button type="success" size="default" @click="startTrainingClick"
@@ -82,8 +82,9 @@
             </el-form>
           </div>
           <div class="card-footer-button">
-            <el-button @click="frontStep" icon="el-icon-arrow-left">上一步</el-button>
-            <el-button v-if="active < 2" type="primary" @click="nextStep">
+            <el-button class="front-button" v-show="active > 0" @click="frontStep" icon="el-icon-arrow-left">上一步
+            </el-button>
+            <el-button class="next-button" v-show="active < 2" type="primary" @click="nextStep">
               下一步
               <i class="el-icon-arrow-right el-icon--right"></i>
             </el-button>
@@ -104,43 +105,43 @@
 
     <el-dialog title="修改动作空间配置" :visible.sync="actionDialogVisible" width="25%">
       <el-form :model="actionSpaceConfigForm" ref="actionSpaceConfigForm" :rules="actionSpaceConfigFormRules"
-        label-width="150px" :inline="false" size="normal">
-        <el-form-item label="Discovery" size="normal">
+        label-width="180px" :inline="false" size="normal">
+        <el-form-item label="Discovery" size="normal" prop="discovery">
           <el-select v-model="actionSpaceConfigForm.discovery" value-key="" placeholder="请选择 Discovery" filterable
             multiple collapse-tags @change="" style="width: 100%">
             <el-option v-for="item in testOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="Credential Access" size="normal">
+        <el-form-item label="Credential Access" size="normal" prop="credentialAccess">
           <el-select v-model="actionSpaceConfigForm.credentialAccess" value-key="" placeholder="请选择 Credential Access"
             filterable multiple collapse-tags @change="" style="width: 100%">
             <el-option v-for="item in testOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="Privilege Escalation" size="normal">
+        <el-form-item label="Privilege Escalation" size="normal" prop="privilegeEscalation">
           <el-select v-model="actionSpaceConfigForm.privilegeEscalation" value-key=""
             placeholder="请选择 Privilege Escalation" filterable multiple collapse-tags @change="" style="width: 100%">
             <el-option v-for="item in testOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="Lateral Movement" size="normal">
+        <el-form-item label="Lateral Movement" size="normal" prop="lateralMovement">
           <el-select v-model="actionSpaceConfigForm.lateralMovement" value-key="" placeholder="请选择 Lateral Movement"
             filterable multiple collapse-tags @change="" style="width: 100%">
             <el-option v-for="item in testOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="Exfiltration" size="normal">
+        <el-form-item label="Exfiltration" size="normal" prop="exfiltration">
           <el-select v-model="actionSpaceConfigForm.exfiltration" value-key="" placeholder="请选择 Exfiltration" filterable
             multiple collapse-tags @change="" style="width: 100%">
             <el-option v-for="item in testOptions" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="Impact" size="normal">
+        <el-form-item label="Impact" size="normal" prop="impact">
           <el-select v-model="actionSpaceConfigForm.impact" value-key="" placeholder="请选择 Impact" filterable multiple
             collapse-tags @change="" style="width: 100%">
             <el-option v-for="item in testOptions" :key="item.value" :label="item.label" :value="item.value">
@@ -150,7 +151,7 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="actionDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="actionDialogVisible = false; trainingForm.isActionConfigSet = true">确 定
+        <el-button type="primary" @click="actionDialogConfirmClick">确 定
         </el-button>
       </span>
     </el-dialog>
@@ -167,6 +168,7 @@
 </template>
 
 <script>
+
 export default {
   name: 'TrainingDetail',
   props: {
@@ -329,7 +331,27 @@ export default {
         isTrainNodeConfigSet: [
           { type: 'enum', enum: [true], required: true, message: '请配置训练节点', trigger: 'change' },
         ]
-      }
+      },
+      actionSpaceConfigFormRules: {
+        discovery: [
+          { required: true, message: '请选择 Discovery', trigger: 'change' },
+        ],
+        credentialAccess: [
+          { required: true, message: '请选择 Credential Access', trigger: 'change' },
+        ],
+        privilegeEscalation: [
+          { required: true, message: '请选择 Privilege Escalation', trigger: 'change' },
+        ],
+        lateralMovement: [
+          { required: true, message: '请选择 Lateral Movement', trigger: 'change' },
+        ],
+        exfiltration: [
+          { required: true, message: '请选择 Exfiltration', trigger: 'change' },
+        ],
+        impact: [
+          { required: true, message: '请选择 Impact', trigger: 'change' },
+        ],
+      },
     }
   },
   created() {
@@ -365,7 +387,6 @@ export default {
     },
     nextStep() {
       if (this.active === 0) {
-        console.log('new Click');
         let stepOneValid = true;
         let stepOneField = ['scenarioId', 'startNodeId', 'algorithmId']
         Promise.all(
@@ -390,15 +411,49 @@ export default {
               stepOneValid = false;
             }
           }
-          if(valid && stepOneValid) {
+          if (valid && stepOneValid) {
             this.active++;
           } else {
             return false;
           }
         });
       } else if (this.active === 1) {
-
+        let stepTwoField = ['seed', 'learningRate', 'batchSize', 'trainingSteps'];
+        Promise.all(
+          stepTwoField.map((field) => {
+            return new Promise((resolve, reject) => {
+              this.$refs['trainingForm'].validateField(field, (errorMessage) => {
+                resolve(errorMessage);
+              });
+            });
+          })
+        ).then((errorMessage) => {
+          let valid = errorMessage.every((errorMessage) => {
+            return errorMessage == '';
+          });
+          if (valid) {
+            this.active++;
+          } else {
+            return false;
+          }
+        });
       }
+    },
+    openActionDialog() {
+      this.actionDialogVisible = true;
+      this.$nextTick(() => {
+        this.$refs['actionSpaceConfigForm'].clearValidate();
+      });
+    },
+    actionDialogConfirmClick() {
+      this.$refs['actionSpaceConfigForm'].validate((valid) => {
+        if (valid) {
+          this.trainingForm.isActionConfigSet = true;
+          this.actionDialogVisible = false;
+        } else {
+          return false;
+        }
+      })
     },
     startTrainingClick() {
       this.$store.dispatch("tagsView/delView", this.$route);
@@ -450,10 +505,21 @@ export default {
 
 .card-footer-button {
   display: flex;
-  justify-content: space-between;
   position: absolute;
   left: 1.25rem;
   right: 1.25rem;
   bottom: 1.25rem;
+}
+
+.front-button {
+  position: absolute;
+  bottom: 0rem;
+  left: 0rem;
+}
+
+.next-button {
+  position: absolute;
+  bottom: 0rem;
+  right: 0rem;
 }
 </style>
