@@ -56,36 +56,51 @@ export const constantRoutes = [
   },
 
   {
-    path: '/',
+    path: '/action',
     component: Layout,
-    redirect: '/action',
+    redirect: '/action/index',
+    name: 'Action',
+    meta: {
+      title: '动作空间管理',
+      icon: 'dashboard'
+    },
     children: [{
-      path: 'action',
-      name: 'Action',
+      path: 'index',
+      name: 'ActionList',
       component: () => import('@/views/action/index'),
       meta: { title: '动作空间管理', icon: 'dashboard' }
     }]
   },
 
   {
-    path: '/',
+    path: '/algorithm',
     component: Layout,
-    redirect: '/algorithm',
+    redirect: '/algorithm/index',
+    name: 'Algorithm',
+    meta: {
+      title: '算法管理',
+      icon: 'dashboard'
+    },
     children: [{
-      path: 'algorithm',
-      name: 'Algorithm',
+      path: 'index',
+      name: 'AlgorithmList',
       component: () => import('@/views/algorithm/index'),
       meta: { title: '算法管理', icon: 'dashboard' }
     }]
   },
 
   {
-    path: '/',
+    path: '/user',
     component: Layout,
-    redirect: '/user',
+    redirect: '/user/index',
+    name: 'User',
+    meta: {
+      title: '用户管理',
+      icon: 'dashboard'
+    },
     children: [{
-      path: 'user',
-      name: 'User',
+      path: 'index',
+      name: 'UserList',
       component: () => import('@/views/user/index'),
       meta: { title: '用户管理', icon: 'dashboard' }
     }]
