@@ -168,7 +168,7 @@
 </template>
 
 <script>
-import { searchTraining, addTraining, alterTraining } from '@/api/training'
+import { searchTraining, addTraining } from '@/api/training'
 
 export default {
   name: 'TrainingDetail',
@@ -383,6 +383,11 @@ export default {
     }
   },
   methods: {
+    fetchData(id) {
+      searchTraining(id).then(response => {
+        this.trainingForm = response.data.items;
+      })
+    },
     frontStep() {
       if (this.active-- == 0) this.active = 0;
     },
@@ -457,8 +462,18 @@ export default {
       })
     },
     startTrainingClick() {
-      this.$store.dispatch("tagsView/delView", this.$route);
-      this.$router.push("/training/index");
+      let newTraining = {
+        id: '10',
+        name: '训练AAA',
+        state: '进行中',
+        time: '2022.10.10',
+        period: '1h.30m.16s',
+        run_machine: 'c1,c3,c7'
+      };
+      addTraining(newTraining).then(response => {
+        this.$store.dispatch("tagsView/delView", this.$route);
+        this.$router.push("/training/index");
+      })
     },
     selectStartNodeClick() {
       this.trainingForm.startNodeId = 123;

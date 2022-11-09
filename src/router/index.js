@@ -57,7 +57,7 @@ export const constantRoutes = [
   {
     path: '/',
     component: Layout,
-    // redirect: '/mainpage',
+    redirect: '/mainpage',
     children: [{
       path: 'mainpage',
       name: 'Mainpage',
@@ -132,6 +132,39 @@ export const constantRoutes = [
         component: () => import('@/views/training/index'),
         name: 'TrainingList',
         meta: { title: '训练', icon: 'dashboard' }
+      }
+    ]
+  },
+
+  {
+    path: '/algorithm',
+    component: Layout,
+    redirect: '/algorithm/index',
+    name: 'Algorithm',
+    meta: {
+      title: '算法',
+      icon: 'dashboard'
+    },
+    children: [
+      {
+        path: 'add/:str',
+        component: () => import('@/views/algorithm/add'),
+        name: 'AddAlgorithm',
+        meta: { title: '新增算法', activeMenu: '/algorithm/index' },
+        hidden: true,
+      },
+      {
+        path: 'edit/:id(\\d+)',
+        component: () => import('@/views/algorithm/edit'),
+        name: 'EditAlgorithm',
+        meta: { title: '修改算法', activeMenu: '/algorithm/index' },
+        hidden: true,
+      },
+      {
+        path: 'index',
+        component: () => import('@/views/algorithm/index'),
+        name: 'AlgorithmList',
+        meta: { title: '算法', icon: 'dashboard' }
       }
     ]
   },
