@@ -8,7 +8,9 @@
               <div align="left">
                 <span>场景数量</span>
               </div>
-              <el-button style="float: right; padding: 3px 0" type="text">查看详情</el-button>
+              <router-link :to="'/scenario/index'">
+                <el-button style="float: right; padding: 3px 0" type="text">查看详情</el-button>
+              </router-link>
             </div>
             <div class="text item">123</div>
           </el-card>
@@ -21,7 +23,9 @@
               <div align="left">
                 <span>训练数量</span>
               </div>
-              <el-button style="float: right; padding: 3px 0" type="text">查看详情</el-button>
+              <router-link :to="'/training/index'">
+                <el-button style="float: right; padding: 3px 0" type="text">查看详情</el-button>
+              </router-link>
             </div>
             <div class="text item">56</div>
           </el-card>
@@ -35,6 +39,18 @@
     </div>
   </div>
 </template>
+
+<script>
+  export default {
+    name: 'MainPage',
+    components: {
+
+    },
+    data() {
+
+    },
+  }
+</script>
 
 <style>
   .text {
