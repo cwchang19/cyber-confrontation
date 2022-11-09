@@ -8,7 +8,6 @@
         <router-link :to="'/scenario/add/' + randomStr">
           <el-button type="primary" @click="randomStr = getRamdomStr()">新增场景</el-button>
         </router-link>
-        <el-button type="primary" @click="testAddClick">新增场景test</el-button>
         <el-table :data="tableData" border style="width: 100%">
           <el-table-column fixed prop="scenario" label="场景名">
           </el-table-column>
@@ -17,8 +16,8 @@
           <el-table-column fixed="right" label="操作">
             <template v-slot="scope">
               <el-button type="primary" size="small" @click="test(scope.row)">重命名</el-button>
-              <el-button type="success" size="small">复制</el-button>
-              <el-button type="info" size="small">删除</el-button>
+              <el-button type="success" size="small" @click="copyClick(scope.row)">复制</el-button>
+              <el-button type="info" size="small" @click="deleteClick(scope.row)">删除</el-button>
               <router-link :to="'/training/add/' + scope.row.id">
                 <el-button type="warning" size="small" style="margin-left: .625rem;">训练</el-button>
               </router-link>
@@ -34,7 +33,7 @@
 </template>
 
 <script>
-import { getScenarioList, addScenario } from '@/api/scenario'
+import { searchScenario, addScenario, deleteScenario } from '@/api/scenario'
 
 export default {
   data() {
@@ -62,49 +61,34 @@ export default {
         children: 'children',
         label: 'label'
       },
-      tableData: [
-        // {
-        //   id: '1',
-        //   scenario: '场景A',
-        //   number: '2'
-        // }, {
-        //   id: '2',
-        //   scenario: '场景B',
-        //   number: '3'
-        // }, {
-        //   id: '3',
-        //   scenario: '场景C',
-        //   number: '4'
-        // }, {
-        //   id: '4',
-        //   scenario: '场景D',
-        //   number: '5'
-        // }
-      ]
+      tableData: []
     }
   },
+  // 场景页面创建结束时触发的钩子函数
   created() {
+    // 请求场景列表
     this.fetchTableData();
   },
+  // 切换回场景标签时触发的钩子函数
   activated() {
+    // 为了在切换回场景标签时能看到新增或修改后的数据，再次请求场景列表
     this.fetchTableData();
   },
   methods: {
     fetchTableData() {
-      console.log(123);
-      getScenarioList().then(response => {
+      searchScenario().then(response => {
         this.tableData = response.data.items;
       })
     },
-    testAddClick() {
-      let data = {
-        id: '0',
-        scenario: '场景0',
-        number: '0'
-      };
-      addScenario(data).then(response => {
-        console.log(response);
-        this.tableData = response.data.items;
+    deleteClick(row) {
+      deleteScenario({id: row.id}).then(response => {
+        this.fetchTableData();
+      })
+    },
+    copyClick(row) {
+      row.id = (Math.floor(Math.random() * (100 - 10 + 1)) + 10) + '';
+      addScenario(row).then(response => {
+        this.fetchTableData();
       })
     },
     handleNodeClick(data, a, b) {
