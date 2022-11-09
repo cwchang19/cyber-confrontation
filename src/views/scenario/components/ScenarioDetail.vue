@@ -40,6 +40,7 @@
 </template>
 
 <script>
+import { searchScenario, addScenario, alterScenario } from '@/api/scenario'
 
 export default {
   name: 'ScenarioDetail',
@@ -53,7 +54,9 @@ export default {
     return {
       tempRoute: {},
       scenarioForm: {
-        name: '',
+        id: '',
+        number: '',
+        scenario: '',
         nodeNum: 0,
         subnetNum: 0,
         infiltrateLevel: 0,
@@ -62,7 +65,7 @@ export default {
         vulnerabilityNum: 0,
       },
       formItem: [
-        {key: 'name', label: '场景名'},
+        {key: 'scenario', label: '场景名'},
         {key: 'nodeNum', label: '节点数'},
         {key: 'subnetNum', label: '子网数'},
         {key: 'infiltrateLevel', label: '渗透级数'},
@@ -81,21 +84,41 @@ export default {
     if(this.isEdit) {
       const scenarioId = this.$route.params && this.$route.params.id;
       // 根据 id 请求场景信息
+      this.fetchData(scenarioId);
       this.scenarioForm.nodeNum = scenarioId;
       this.scenarioForm.subnetNum = scenarioId;
       this.scenarioForm.infiltrateLevel = scenarioId;
       this.scenarioForm.protectionLevel = scenarioId;
       this.scenarioForm.targetNum = scenarioId;
       this.scenarioForm.vulnerabilityNum = scenarioId;
+    } else {
+      this.scenarioForm.id = (Math.floor(Math.random() * (100 - 10 + 1)) + 10) + '';
+      this.scenarioForm.number = '0';
     }
     this.tempRoute = Object.assign({}, this.$route)
   },
   methods: {
+    fetchData(id) {
+      searchScenario(id).then(response => {
+        console.log(response);
+        this.scenarioForm = Object.assign(this.scenarioForm, response.data.items[0]);
+        console.log(this.scenarioForm);
+      })
+    },
     saveScenarioClick() {
       this.$refs['scenarioForm'].validate((valid) => {
         if(valid) {
-          this.$store.dispatch("tagsView/delView", this.$route);
-          this.$router.push("/scenario/index");
+          if(this.isEdit){
+            alterScenario(this.scenarioForm).then(response => {
+              this.$store.dispatch("tagsView/delView", this.$route);
+              this.$router.push("/scenario/index");
+            })
+          } else {
+            addScenario(this.scenarioForm).then(response => {
+              this.$store.dispatch("tagsView/delView", this.$route);
+              this.$router.push("/scenario/index");
+            })
+          }
         } else {
           return false;
         }

@@ -168,6 +168,7 @@
 </template>
 
 <script>
+import { searchTraining, addTraining, alterTraining } from '@/api/training'
 
 export default {
   name: 'TrainingDetail',
@@ -355,7 +356,7 @@ export default {
     }
   },
   created() {
-    if (fromScenarioId) {
+    if (this.fromScenarioId) {
       this.trainingForm.scenarioId = fromScenarioId;
     }
   },
