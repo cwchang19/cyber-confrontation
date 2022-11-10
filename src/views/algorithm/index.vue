@@ -82,6 +82,7 @@
 
 <script>
   import AlgorithmDetail from './components/AlgorithmDetail.vue';
+  import { searchAllAlgorithm, searchAlgorithmByCondition, deleteAlgorithmById, alterAlgorithmById } from '@/api/algorithm'
   export default {
     name: 'Algorithm',
     components: {
@@ -115,10 +116,15 @@
     },
     created() {
       // 页面创建结束后请求并绑定数据
-      this.fetchData();
+      this.fetchData(null);
     },
     methods: {
-      fetchData() {
+      fetchData(data) {
+        if(!data) {
+          searchAllAlgorithm().then(response => {
+            console.log(response);
+          })
+        }
         // 请求算法列表，this.tableData = 请求到的数据
       },
       addClick() {
