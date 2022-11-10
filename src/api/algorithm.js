@@ -4,7 +4,7 @@ export function searchAllAlgorithm() {
   return request({
     url: '/api/algorithm/all',
     method: 'get',
-    params: {}
+    params: null,
   })
 }
 

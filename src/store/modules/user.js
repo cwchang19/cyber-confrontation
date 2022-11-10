@@ -38,7 +38,6 @@ const actions = {
         const { data } = response
         if(data.user) {
           commit('SET_TOKEN', data.token)
-          console.log(data.token);
           setToken(data.token)
           resolve()
         } else {
@@ -89,6 +88,11 @@ const actions = {
         reject(error)
       })
     })
+  },
+
+  tlogout({ commit, state }) {
+    removeToken() // must remove  token  first
+    resetRouter()
   },
 
   // remove token
