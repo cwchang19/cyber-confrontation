@@ -32,9 +32,23 @@
             clearable
             @change="">
           </el-input>
-          <el-button v-else type="primary" plain size="normal" icon="el-icon-plus" @click="">
+          
+          <el-upload
+            class="upload-demo"
+            v-else
+            action="https://jsonplaceholder.typicode.com/posts/"
+            :on-preview="handlePreview"
+            :on-remove="handleRemove"
+            :before-remove="beforeRemove"
+            multiple
+            :limit="3"
+            :on-exceed="handleExceed"
+            :file-list="fileList">
+            <el-button size="small" type="primary">上传算法文件</el-button>
+          </el-upload>
+          <!-- <el-button v-else type="primary" plain size="normal" icon="el-icon-plus" @click="">
             点击上传算法文件
-          </el-button>
+          </el-button> -->
         </template>
       </el-form-item>
       <el-form-item>
