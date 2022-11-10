@@ -147,20 +147,6 @@ export const constantRoutes = [
     },
     children: [
       {
-        path: 'add/:str',
-        component: () => import('@/views/algorithm/add'),
-        name: 'AddAlgorithm',
-        meta: { title: '新增算法', activeMenu: '/algorithm/index' },
-        hidden: true,
-      },
-      {
-        path: 'edit/:id(\\d+)',
-        component: () => import('@/views/algorithm/edit'),
-        name: 'EditAlgorithm',
-        meta: { title: '修改算法', activeMenu: '/algorithm/index' },
-        hidden: true,
-      },
-      {
         path: 'index',
         component: () => import('@/views/algorithm/index'),
         name: 'AlgorithmList',
