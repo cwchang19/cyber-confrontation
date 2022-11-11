@@ -2,7 +2,7 @@
   <div class="algorithm-container">
     <h1>算法列表</h1>
     <el-row :gutter="20">
-      <el-card shadow="always" :body-style="{ padding: '20px' }">
+      <el-card :body-style="{ padding: '20px' }">
         <el-row :gutter="20" type="flex" justify="space-between" style="padding: .625rem; padding-top: 0rem;">
           <div class="search-tool">
             <el-input v-model="tempSearchText" placeholder="请输入算法名" size="small" clearable
@@ -18,7 +18,7 @@
         </el-row>
         <el-row :gutter="20">
           <el-table :data="tableData" style="width: 100%">
-            <el-table-column v-for="(item, index) in tableColumn" :prop="item.prop" :label="item.label"
+            <el-table-column v-for="(item, index) in tableColumns" :prop="item.prop" :label="item.label"
               :width="item.width" :show-overflow-tooltip="item.showOverflowTooltip || false">
               <template v-if="item.prop === 'operate'" v-slot="scope">
                 <el-button type="warning" size="mini" @click="editClick(scope.row)">编辑</el-button>
@@ -32,7 +32,6 @@
             layout="total, prev, pager, next, jumper">
           </el-pagination>
         </el-row>
-
       </el-card>
     </el-row>
 
@@ -95,23 +94,15 @@ export default {
       editAlgDialogVisible: false,
       deleteAlgDialogVisible: false,
       selectedAlgId: '',
-      tableColumn: [
+      tableColumns: [
         { prop: 'id', label: '序号', width: '100' },
         { prop: 'algorithm_name', label: '算法名', width: '250' },
         { prop: 'algorithm_description', label: '算法描述', width: '', showOverflowTooltip: true },
         { prop: 'algorithm_file', label: '算法文件', width: '150' },
         { prop: 'create_datetime', label: '创建时间', width: '200' },
-        { prop: 'operate', label: '操作', width: '180' },
+        { prop: 'operate', label: '操作', width: '150' },
       ],
-      tableData: [
-        {
-          id: '1',
-          algorithm_name: '算法1',
-          algorithm_description: '算法描述1',
-          algorithm_file: '算法文件1',
-          create_datetime: '2022-1-1',
-        }
-      ]
+      tableData: []
     }
   },
   created() {

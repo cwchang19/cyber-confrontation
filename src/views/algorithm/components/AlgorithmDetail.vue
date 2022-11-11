@@ -18,9 +18,22 @@
             :type="item.key === 'algorithm_name' ? '' : 'textarea'" :placeholder="'请输入' + item.label" size="normal"
             clearable @change="">
           </el-input>
-          <el-button v-else type="primary" plain size="normal" icon="el-icon-plus" @click="">
+          <el-upload
+            class="upload-demo"
+            v-else
+            action="https://jsonplaceholder.typicode.com/posts/"
+            :on-preview="handlePreview"
+            :on-remove="handleRemove"
+            :before-remove="beforeRemove"
+            multiple
+            :limit="3"
+            :on-exceed="handleExceed"
+            :file-list="fileList">
+            <el-button plain type="primary" icon="el-icon-plus">上传算法文件</el-button>
+          </el-upload>
+          <!-- <el-button v-else type="primary" plain size="normal" icon="el-icon-plus" @click="">
             点击上传算法文件
-          </el-button>
+          </el-button> -->
         </template>
       </el-form-item>
       <el-form-item>
