@@ -45,3 +45,11 @@ export function logout() {
     method: 'get'
   })
 }
+
+export function searchUserByCondition(params) {
+  return request({
+    url: '/api/user',
+    method: 'get',
+    params: params
+  })
+}
