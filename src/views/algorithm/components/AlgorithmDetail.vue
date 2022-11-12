@@ -112,7 +112,6 @@ export default {
     formBtnClick(type) {
       // type === 'confirm' 是确认按钮点击事件，type === 'cancel' 是取消按钮点击事件
       if (type === 'confirm') {
-        this.algorithmForm.create_datetime = new Date();
         // 根据formRules验证表单
         this.$refs['algorithmForm'].validate(async (valid) => {
           if (valid) {
@@ -123,6 +122,7 @@ export default {
               console.log(response);
             } else {
               // 否则向后端请求新增算法this.algorithmForm
+              this.algorithmForm.create_datetime = new Date();
               const response = await addAlgorithm(this.algorithmForm);
             }
             // 通过 this.$emit('在index.vue页面中给当前这个组件绑定的监听事件名'，要返回的数据) 来触发 index.vue 中的监听事件
