@@ -2,7 +2,7 @@
   <div class="action-container">
     <h1>动作空间列表</h1>
     <el-row :gutter="20">
-      <el-card :body-style="{ padding: '20px' }">
+      <el-card :body-style="{ padding: '20px' }" v-loading="loading">
         <el-row :gutter="20" type="flex" justify="space-between" style="padding: .625rem; padding-top: 0rem;">
           <div class="search-tool">
             <el-input v-model="tempSearchText" placeholder="请输入动作名" size="small" clearable
@@ -59,42 +59,6 @@
         <el-button type="primary" @click="dialogClick">确定</el-button>
       </div>
     </el-dialog>
-    
-    <!-- <el-dialog title="编辑动作" :visible.sync="editActDialogVisible">
-      <el-form :model="form">
-        <el-form-item label="动作名称" :label-width="formLabelWidth">
-          <el-input v-model="form.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="动作类型" :label-width="formLabelWidth">
-          <el-input v-model="form.type" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="动作描述" :label-width="formLabelWidth">
-          <el-input v-model="form.description" autocomplete="off"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="editActDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="editActDialogVisible = false">确 定</el-button>
-      </div>
-    </el-dialog>
-
-    <el-dialog title="新增动作" :visible.sync="addActDialogVisible">
-      <el-form :model="form">
-        <el-form-item label="动作名称" :label-width="formLabelWidth">
-          <el-input v-model="form.name" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="动作类型" :label-width="formLabelWidth">
-          <el-input v-model="form.type" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="动作描述" :label-width="formLabelWidth">
-          <el-input v-model="form.description" autocomplete="off"></el-input>
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="addActDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addActDialogVisible = false">确 定</el-button>
-      </div>
-    </el-dialog> -->
 
     <el-dialog title="删除动作" v-if="deleteActDialogVisible" :visible.sync="deleteActDialogVisible" width="30%">
       <div style="font-size: medium;">确认删除序号为 {{ selectedActId }} 的动作吗？</div>
@@ -115,6 +79,7 @@ export default {
   components: {},
   data() {
     return {
+      loading: true,
       pageSize: 10,
       page: 1,
       tempPage: 1,
@@ -133,8 +98,6 @@ export default {
         { prop: 'action_description', label: '动作描述', width: '', showOverflowTooltip: true },
         { prop: 'operate', label: '操作', width: '150' },
       ],
-      uploadaction: false,
-      editaction: false,
       actionForm: {
         action_name: '',
         action_type: '',
@@ -170,12 +133,14 @@ export default {
   },
   methods: {
     async fetchData(params) {
+      this.loading = true;
       params = params || { action_name: this.searchText, pageSize: this.pageSize, page: this.page };
       let response = await searchActionByCondition(params);
       if (response.data.items) {
         this.tableData = response.data.items;
         this.total = response.data.total;
       }
+      this.loading = false;
     },
     searchClick() {
       this.searchText = this.tempSearchText;

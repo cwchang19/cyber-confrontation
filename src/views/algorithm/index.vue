@@ -2,7 +2,7 @@
   <div class="algorithm-container">
     <h1>算法列表</h1>
     <el-row :gutter="20">
-      <el-card :body-style="{ padding: '20px' }">
+      <el-card :body-style="{ padding: '20px' }" v-loading="loading">
         <el-row :gutter="20" type="flex" justify="space-between" style="padding: .625rem; padding-top: 0rem;">
           <div class="search-tool">
             <el-input v-model="tempSearchText" placeholder="请输入算法名" size="small" clearable
@@ -84,6 +84,7 @@ export default {
   },
   data() {
     return {
+      loading: true,
       pageSize: 10,
       page: 1,
       tempPage: 1,
@@ -120,6 +121,7 @@ export default {
   },
   methods: {
     async fetchData() {
+      this.loading = true;
       // 请求算法列表，this.tableData = 请求到的数据
       let params = { algorithm_name: this.searchText, pageSize: this.pageSize, page: this.page };
       let response = await searchAlgorithmByCondition(params);
@@ -127,6 +129,7 @@ export default {
         this.tableData = response.data.items;
         this.total = response.data.total;
       }
+      this.loading = false;
     },
     searchClick() {
       this.searchText = this.tempSearchText;

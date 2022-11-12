@@ -68,7 +68,7 @@ export const constantRoutes = [
       path: 'index',
       name: 'ActionList',
       component: () => import('@/views/action/index'),
-      meta: { title: '动作空间管理', icon: 'dashboard' }
+      meta: { title: '动作空间列表', icon: 'dashboard' }
     }]
   },
 
@@ -85,7 +85,7 @@ export const constantRoutes = [
       path: 'index',
       name: 'AlgorithmList',
       component: () => import('@/views/algorithm/index'),
-      meta: { title: '算法管理', icon: 'dashboard' }
+      meta: { title: '算法列表', icon: 'dashboard' }
     }]
   },
 
@@ -102,7 +102,7 @@ export const constantRoutes = [
       path: 'index',
       name: 'UserList',
       component: () => import('@/views/user/index'),
-      meta: { title: '用户管理', icon: 'dashboard' }
+      meta: { title: '用户列表', icon: 'dashboard' }
     }]
   },
 
