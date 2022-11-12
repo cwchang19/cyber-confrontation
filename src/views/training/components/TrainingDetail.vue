@@ -72,9 +72,12 @@
                 </el-form-item>
               </div>
               <div class="card-content-step2" v-show="active === 2">
-                <el-alert title="请确认填写的训练设置" type="warning" description="确认填写的训练设置无误后点击下方“开始训练”即可开启后台训练。" show-icon
+                <el-alert title="请确认填写的训练设置" type="warning" description="确认填写的训练设置无误后，填写训练名称并点击下方“开始训练”即可开启后台训练。" show-icon
                   :closable="false">
                 </el-alert>
+                <el-form-item label="训练名称" size="normal" prop="training_name" style="padding-top: 1.25rem;">
+                  <el-input v-model="trainingForm.training_name" placeholder="请输入训练名称" size="normal"></el-input>
+                </el-form-item>
                 <el-button type="success" size="default" @click="startTrainingClick"
                   style="margin-top: 2.5rem; width: 100%;">开始训练
                 </el-button>
@@ -169,6 +172,7 @@
 
 <script>
 import { searchTraining, addTraining } from '@/api/training'
+import { async } from 'q';
 
 export default {
   name: 'TrainingDetail',
@@ -186,6 +190,7 @@ export default {
       actionConfigButtonType: 'primary',
       trainingNodeConfigButtonType: 'primary',
       trainingForm: {
+        training_name: '',
         scenarioId: '',
         startNodeId: '',
         algorithmId: '',
@@ -206,8 +211,7 @@ export default {
         exfiltration: null,
         impact: null,
       },
-      trainNodeConfigForm: {
-      },
+      trainNodeConfigForm: {},
       scenarioOptions: [
         {
           value: 'fileA',
@@ -331,6 +335,9 @@ export default {
         ],
         isTrainNodeConfigSet: [
           { type: 'enum', enum: [true], required: true, message: '请配置训练节点', trigger: 'change' },
+        ],
+        training_name: [
+          { required: true, message: '请输入训练名称', trigger: 'change' }
         ]
       },
       actionSpaceConfigFormRules: {
@@ -470,9 +477,14 @@ export default {
         period: '1h.30m.16s',
         run_machine: 'c1,c3,c7'
       };
-      addTraining(newTraining).then(response => {
-        this.$store.dispatch("tagsView/delView", this.$route);
-        this.$router.push("/training/index");
+      this.$refs['trainingForm'].validateField('training_name', async (errorMessage) => {
+        if(errorMessage == '') {
+          const response = await addTraining(newTraining);
+          this.$store.dispatch("tagsView/delView", this.$route);
+          this.$router.push("/training/index");
+        } else {
+          return false;
+        }
       })
     },
     selectStartNodeClick() {

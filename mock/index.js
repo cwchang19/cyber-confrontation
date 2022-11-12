@@ -5,12 +5,14 @@ const user = require('./user')
 const table = require('./table')
 const scenario = require('./scenario')
 const training = require('./training')
+const file = require('./file')
 
 const mocks = [
   ...user,
   ...table,
   ...scenario,
   ...training,
+  ...file,
 ]
 
 // for front mock
