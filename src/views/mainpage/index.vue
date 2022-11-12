@@ -47,7 +47,9 @@
 
     },
     data() {
-
+      return {
+        
+      }
     },
   }
 </script>

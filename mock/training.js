@@ -1,3 +1,37 @@
+const Mock = require('mockjs');
+
+let options = ['选项1', '选项2', '选项3', '选项4', '选项5', '选项6'];
+
+let data = Mock.mock({
+  'items|30': [{
+    'id|+1': 1,
+    training_name: '训练 ' + '@word(5, 10)',
+    'training_state|1': ['训练中', '成功', '失败'],
+    create_datetime: '@datetime',
+    training_duration: '@time',
+    training_position: '主机 ' + '@word(3)',
+    'directory_name|1': [1, 2, 3],
+    'directory_parent|1': [1, 2, 3],
+    action_config: {
+      'discovery|1': options,
+      'credentialAccess|1': options,
+      'privilegeEscalation|1': options,
+      'discovlateralMovementery|1': options,
+      'exfiltration|1': options,
+      'impact|1': options,
+    },
+    scenario_id: '@integer(1, 3)',
+    startNode_id: '@integer(1, 3)',
+    algorithm_id: '@integer(1, 3)',
+    seed: '@integer(1, 10)',
+    learningRate: '@integer(1, 10)',
+    batchSize: '@integer(1, 10)',
+    trainingSteps: '@integer(1, 10)',
+    'trainingNodeConfigType|1': [0, 1],
+    'visualizationType|1': [0, 1],
+  }]
+})
+
 const trainings = [
   {
     id: '1',
@@ -32,34 +66,39 @@ const trainings = [
 
 module.exports = [
   {
-    url: '/vue-admin-template/training/search\.*',
+    url: '/api/training',
     type: 'get',
     response: config => {
-      console.log('search');
-      console.log(config.query);
-      let items = null;
-      if(!config.query.id) {
-        items = trainings;
+      const { id, fid, pageSize, page } = config.query;
+      let res = data.items;
+      let len;
+      if(id) {
+        res = res.filter(item => item.id == id);
+        len = 1;
       } else {
-        items = trainings.filter(training => training.id === config.query.id);
+        res = res.filter(item => item.directory_name == fid);
+        len = res.length;
+        res = res.slice(pageSize * (page - 1), pageSize * page);
       }
       return {
         code: 20000,
         data: {
-          total: items.length,
-          items: items
+          total: len,
+          items: res
         }
       }
     }
   },
   {
-    url: '/vue-admin-template/training/add',
+    url: '/api/training',
     type: 'post',
     response: config => {
-      console.log('add');
-      let data = config.body;
-      trainings.push(data);
-      const items = trainings
+      let newItem = config.body;
+      newItem.id = data.items.length + 1;
+      newItem.training_state = '训练中';
+      newItem.training_duration = '00:01:13';
+      newItem.training_position = '主机 aaa';
+      data.items.push(newItem);
       return {
         code: 20000,
         data: { }
@@ -67,32 +106,13 @@ module.exports = [
     }
   },
   {
-    url: '/vue-admin-template/training/alter',
-    type: 'post',
+    url: '/api/training',
+    type: 'delete',
     response: config => {
-      console.log('alter');
-      let data = config.body;
-      for(let i=0; i<trainings.length; i++) {
-        if(trainings[i].id === data.id) {
-          trainings[i] = data
-          break;
-        }
-      }
-      return {
-        code: 20000,
-        data: { }
-      }
-    }
-  },
-  {
-    url: '/vue-admin-template/training/delete',
-    type: 'post',
-    response: config => {
-      console.log('delete');
-      let data = config.body;
-      for(let i=0; i<trainings.length; i++) {
-        if(trainings[i].id === data.id) {
-          trainings.splice(i, 1);
+      let { id } = config.query;
+      for(let i=0; i<data.items.length; i++) {
+        if(data.items[i].id == id) {
+          data.items.splice(i, 1);
           break;
         }
       }

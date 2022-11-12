@@ -53,10 +53,12 @@ export default {
   data() {
     return {
       tempRoute: {},
+      scenario_id: '',
       scenarioForm: {
         id: '',
-        number: '',
-        scenario: '',
+        training_num: 0,
+        scenario_name: '',
+        directory_name: '',
         nodeNum: 0,
         subnetNum: 0,
         infiltrateLevel: 0,
@@ -65,7 +67,7 @@ export default {
         vulnerabilityNum: 0,
       },
       formItem: [
-        {key: 'scenario', label: '场景名'},
+        {key: 'scenario_name', label: '场景名'},
         {key: 'nodeNum', label: '节点数'},
         {key: 'subnetNum', label: '子网数'},
         {key: 'infiltrateLevel', label: '渗透级数'},
@@ -74,7 +76,7 @@ export default {
         {key: 'vulnerabilityNum', label: '漏洞数'},
       ],
       scenarioFormRules: {
-        name: [
+        scenario_name: [
           { required: true, message: '请输入场景名', trigger: 'change' }
         ],
       }
@@ -82,43 +84,32 @@ export default {
   },
   created() {
     if(this.isEdit) {
-      const scenarioId = this.$route.params && this.$route.params.id;
+      this.scenario_id = this.$route.params && this.$route.params.id;
       // 根据 id 请求场景信息
-      this.fetchData(scenarioId);
-      this.scenarioForm.nodeNum = scenarioId;
-      this.scenarioForm.subnetNum = scenarioId;
-      this.scenarioForm.infiltrateLevel = scenarioId;
-      this.scenarioForm.protectionLevel = scenarioId;
-      this.scenarioForm.targetNum = scenarioId;
-      this.scenarioForm.vulnerabilityNum = scenarioId;
+      this.fetchData();
     } else {
-      this.scenarioForm.id = (Math.floor(Math.random() * (100 - 10 + 1)) + 10) + '';
-      this.scenarioForm.number = '0';
+      this.scenarioForm.directory_name = this.$route.params && this.$route.params.fid;
+      this.scenarioForm.directory_name = this.scenarioForm.directory_name.substring(8);
     }
-    this.tempRoute = Object.assign({}, this.$route)
+    this.tempRoute = Object.assign({}, this.$route);
   },
   methods: {
-    fetchData(id) {
-      searchScenario(id).then(response => {
-        console.log(response);
-        this.scenarioForm = Object.assign(this.scenarioForm, response.data.items[0]);
-        console.log(this.scenarioForm);
-      })
+    async fetchData() {
+      let response = await searchScenario({ id: this.scenario_id });
+      if(response.data.total > 0) {
+        this.scenarioForm = response.data.items[0];
+      }
     },
     saveScenarioClick() {
-      this.$refs['scenarioForm'].validate((valid) => {
+      this.$refs['scenarioForm'].validate(async (valid) => {
         if(valid) {
           if(this.isEdit){
-            alterScenario(this.scenarioForm).then(response => {
-              this.$store.dispatch("tagsView/delView", this.$route);
-              this.$router.push("/scenario/index");
-            })
+            let response = await alterScenario({id: this.scenario_id}, this.scenarioForm);
           } else {
-            addScenario(this.scenarioForm).then(response => {
-              this.$store.dispatch("tagsView/delView", this.$route);
-              this.$router.push("/scenario/index");
-            })
+            let response = await addScenario(this.scenarioForm);
           }
+          this.$store.dispatch("tagsView/delView", this.$route);
+          this.$router.push("/scenario/index");
         } else {
           return false;
         }

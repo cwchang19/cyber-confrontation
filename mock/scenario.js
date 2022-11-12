@@ -1,56 +1,54 @@
-const scenarios = [
-  {
-    id: '1',
-    scenario: '场景A',
-    number: '2'
-  }, 
-  {
-    id: '2',
-    scenario: '场景B',
-    number: '3'
-  }, 
-  {
-    id: '3',
-    scenario: '场景C',
-    number: '4'
-  }, 
-  {
-    id: '4',
-    scenario: '场景D',
-    number: '5'
-  }
-];
+const Mock = require('mockjs');
+
+let data = Mock.mock({
+  'items|30': [{
+    'id|+1': 1,
+    scenario_name: '场景 ' + '@word(5, 10)',
+    training_num: '@integer(1, 20)',
+    'directory_name|1': [1, 2, 3],
+    'directory_parent|1': [1, 2, 3],
+    nodeNum: '@integer(1, 10)',
+    subnetNum: '@integer(1, 10)',
+    infiltrateLevel: '@integer(1, 10)',
+    protectionLevel: '@integer(1, 10)',
+    targetNum: '@integer(1, 10)',
+    vulnerabilityNum: '@integer(1, 10)',
+  }]
+})
 
 module.exports = [
   {
-    url: '/vue-admin-template/scenario/search\.*',
+    // url: '/vue-admin-template/scenario/search\.*',
+    url: '/api/scenario',
     type: 'get',
     response: config => {
-      console.log('search');
-      console.log(config.query);
-      let items = null;
-      if(!config.query.id) {
-        items = scenarios;
+      const { id, fid, pageSize, page } = config.query;
+      let res = data.items;
+      let len;
+      if(id) {
+        res = data.items.filter(item => item.id == id);
+        len = 1;
       } else {
-        items = scenarios.filter(scenario => scenario.id === config.query.id);
+        res = data.items.filter(item => item.directory_name == fid);
+        len = res.length;
+        res = res.slice(pageSize * (page - 1), pageSize * page);
       }
       return {
         code: 20000,
         data: {
-          total: items.length,
-          items: items
+          total: len,
+          items: res
         }
       }
     }
   },
   {
-    url: '/vue-admin-template/scenario/add',
+    url: '/api/scenario',
     type: 'post',
     response: config => {
-      console.log('add');
-      let data = config.body;
-      scenarios.push(data);
-      const items = scenarios
+      let newItem = config.body;
+      newItem.id = data.items.length + 1;
+      data.items.push(newItem);
       return {
         code: 20000,
         data: { }
@@ -58,14 +56,14 @@ module.exports = [
     }
   },
   {
-    url: '/vue-admin-template/scenario/alter',
-    type: 'post',
+    url: '/api/scenario',
+    type: 'put',
     response: config => {
-      console.log('alter');
-      let data = config.body;
-      for(let i=0; i<scenarios.length; i++) {
-        if(scenarios[i].id === data.id) {
-          scenarios[i] = data
+      const { id } = config.query;
+      const item = config.body;
+      for(let i=0; i<data.items.length; i++) {
+        if(data.items[i].id == id) {
+          data.items[i] = item;
           break;
         }
       }
@@ -76,14 +74,13 @@ module.exports = [
     }
   },
   {
-    url: '/vue-admin-template/scenario/delete',
-    type: 'post',
+    url: '/api/scenario',
+    type: 'delete',
     response: config => {
-      console.log('delete');
-      let data = config.body;
-      for(let i=0; i<scenarios.length; i++) {
-        if(scenarios[i].id === data.id) {
-          scenarios.splice(i, 1);
+      let { id } = config.query;
+      for(let i=0; i<data.items.length; i++) {
+        if(data.items[i].id == id) {
+          data.items.splice(i, 1);
           break;
         }
       }

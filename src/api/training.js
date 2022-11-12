@@ -1,33 +1,25 @@
 import request from '@/utils/request'
 
-export function searchTraining(id) {
+export function searchTraining(params) {
   return request({
-    url: '/vue-admin-template/training/search',
+    url: '/api/training',
     method: 'get',
-    params: { id }
+    params: params
   })
 }
 
 export function addTraining(data) {
   return request({
-    url: '/vue-admin-template/training/add',
+    url: '/api/training',
     method: 'post',
     data
   })
 }
 
-export function alterTraining(data) {
+export function deleteTraining(params) {
   return request({
-    url: '/vue-admin-template/training/alter',
-    method: 'post',
-    data
-  })
-}
-
-export function deleteTraining(data) {
-  return request({
-    url: '/vue-admin-template/training/delete',
-    method: 'post',
-    data
+    url: '/api/training',
+    method: 'delete',
+    params: params
   })
 }

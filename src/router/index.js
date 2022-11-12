@@ -72,7 +72,7 @@ export const constantRoutes = [
     redirect: '/scenario/index',
     name: 'Scenario',
     meta: {
-      title: '场景',
+      title: '场景管理',
       icon: 'dashboard'
     },
     children: [
@@ -88,7 +88,7 @@ export const constantRoutes = [
         }
       },
       {
-        path: 'add/:str',
+        path: 'add/:fid',
         component: () => import('@/views/scenario/add'),
         name: 'AddScenario',
         meta: { title: '新增场景', activeMenu: '/scenario/index' },
@@ -98,7 +98,7 @@ export const constantRoutes = [
         path: 'index',
         component: () => import('@/views/scenario/index'),
         name: 'ScenerioList',
-        meta: { title: '场景', icon: 'dashboard' },
+        meta: { title: '场景列表', icon: 'dashboard' },
       }
     ]
   },
@@ -109,7 +109,7 @@ export const constantRoutes = [
     redirect: '/training/index',
     name: 'Training',
     meta: {
-      title: '训练',
+      title: '训练管理',
       icon: 'dashboard'
     },
     children: [
@@ -131,7 +131,7 @@ export const constantRoutes = [
         path: 'index',
         component: () => import('@/views/training/index'),
         name: 'TrainingList',
-        meta: { title: '训练', icon: 'dashboard' }
+        meta: { title: '训练列表', icon: 'dashboard' }
       }
     ]
   },
@@ -142,7 +142,7 @@ export const constantRoutes = [
     redirect: '/algorithm/index',
     name: 'Algorithm',
     meta: {
-      title: '算法',
+      title: '算法管理',
       icon: 'dashboard'
     },
     children: [
@@ -150,7 +150,7 @@ export const constantRoutes = [
         path: 'index',
         component: () => import('@/views/algorithm/index'),
         name: 'AlgorithmList',
-        meta: { title: '算法', icon: 'dashboard' }
+        meta: { title: '算法列表', icon: 'dashboard' }
       }
     ]
   },

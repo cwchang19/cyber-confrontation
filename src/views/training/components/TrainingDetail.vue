@@ -13,13 +13,13 @@
             <el-form :model="trainingForm" ref="trainingForm" :rules="trainingFormRules" :inline="false" size="normal"
               label-position="top">
               <div class="card-content-step0" v-show="active === 0">
-                <el-form-item label="网络场景" size="normal" prop="scenarioId">
-                  <el-cascader :options="scenarioOptions" v-model="trainingForm.scenarioId" placeholder="请选择网络场景"
-                    clearable filterable :show-all-levels="false" @change="" style="width: 100%">
+                <el-form-item label="网络场景" size="normal" prop="scenario_id">
+                  <el-cascader :options="scenarioOptions" v-model="trainingForm.scenario_id" placeholder="请选择网络场景"
+                    clearable filterable :show-all-levels="false" :disabled="isfromScenario" @change="" style="width: 100%">
                   </el-cascader>
                 </el-form-item>
-                <el-form-item label="初始节点" size="normal" prop="startNodeId">
-                  <el-input v-model="trainingForm.startNodeId" placeholder="请在右侧可视化界面选择" size="normal" disabled>
+                <el-form-item label="初始节点" size="normal" prop="startNode_id">
+                  <el-input v-model="trainingForm.startNode_id" placeholder="请在右侧可视化界面选择" size="normal" disabled>
                   </el-input>
                 </el-form-item>
                 <el-form-item label="配置动作空间" size="normal" prop="isActionConfigSet">
@@ -28,8 +28,8 @@
                     修改动作空间配置
                   </el-button>
                 </el-form-item>
-                <el-form-item label="算法" size="normal" prop="algorithmId">
-                  <el-cascader :options="algorithmOptions" v-model="trainingForm.algorithmId" placeholder="请选择算法"
+                <el-form-item label="算法" size="normal" prop="algorithm_id">
+                  <el-cascader :options="algorithmOptions" v-model="trainingForm.algorithm_id" placeholder="请选择算法"
                     clearable filterable :show-all-levels="false" @change="" style="width: 100%">
                   </el-cascader>
                 </el-form-item>
@@ -72,9 +72,14 @@
                 </el-form-item>
               </div>
               <div class="card-content-step2" v-show="active === 2">
-                <el-alert title="请确认填写的训练设置" type="warning" description="确认填写的训练设置无误后点击下方“开始训练”即可开启后台训练。" show-icon
+                <el-alert title="请确认填写的训练设置" type="warning" description="确认填写的训练设置无误后，填写训练吗并点击下方“开始训练”即可开启后台训练。" show-icon
                   :closable="false">
                 </el-alert>
+                <el-form-item label="训练名称" size="normal" prop="training_name">
+                  <el-input v-model="trainingForm.training_name" placeholder="请输入训练名" size="normal" clearable @change="">
+                  </el-input>
+                </el-form-item>
+                
                 <el-button type="success" size="default" @click="startTrainingClick"
                   style="margin-top: 2.5rem; width: 100%;">开始训练
                 </el-button>
@@ -172,23 +177,21 @@ import { searchTraining, addTraining } from '@/api/training'
 
 export default {
   name: 'TrainingDetail',
-  props: {
-    fromScenarioId: {
-      type: Number,
-      default: NaN
-    }
-  },
   data() {
     return {
+      isfromScenario: false,
       active: 0,
       actionDialogVisible: false,
       nodeDialogVisible: false,
       actionConfigButtonType: 'primary',
       trainingNodeConfigButtonType: 'primary',
       trainingForm: {
-        scenarioId: '',
-        startNodeId: '',
-        algorithmId: '',
+        training_name: '',
+        scenario_id: '',
+        startNode_id: '',
+        algorithm_id: '',
+        directory_name: '',
+        directory_parent: '',
         seed: '',
         learningRate: '',
         batchSize: '',
@@ -197,6 +200,7 @@ export default {
         visualizationType: 0,
         isActionConfigSet: null,
         isTrainNodeConfigSet: null,
+        create_datetime: '',
       },
       actionSpaceConfigForm: {
         discovery: null,
@@ -305,13 +309,13 @@ export default {
         },
       ],
       trainingFormRules: {
-        scenarioId: [
+        scenario_id: [
           { required: true, message: '请选择场景', trigger: 'change' },
         ],
-        startNodeId: [
+        startNode_id: [
           { required: true, message: '请选择初始节点', trigger: 'change' },
         ],
-        algorithmId: [
+        algorithm_id: [
           { required: true, message: '请选择算法', trigger: 'change' },
         ],
         seed: [
@@ -331,6 +335,9 @@ export default {
         ],
         isTrainNodeConfigSet: [
           { type: 'enum', enum: [true], required: true, message: '请配置训练节点', trigger: 'change' },
+        ],
+        training_name: [
+          { required: true, message: '训练名称不能为空', trigger: 'change' },
         ]
       },
       actionSpaceConfigFormRules: {
@@ -356,9 +363,13 @@ export default {
     }
   },
   created() {
-    if (this.fromScenarioId) {
-      this.trainingForm.scenarioId = fromScenarioId;
+    let str = this.$route.params && this.$route.params.str;
+    str = str.split('.');
+    if(str[0] != '') {
+      this.isfromScenario = true;
     }
+    this.trainingForm.scenario_id = str[0];
+    this.trainingForm.directory_name = str[1];
   },
   computed: {
     getActionConfigButtonType() {
@@ -383,18 +394,13 @@ export default {
     }
   },
   methods: {
-    fetchData(id) {
-      searchTraining(id).then(response => {
-        this.trainingForm = response.data.items;
-      })
-    },
     frontStep() {
       if (this.active-- == 0) this.active = 0;
     },
     nextStep() {
       if (this.active === 0) {
         let stepOneValid = true;
-        let stepOneField = ['scenarioId', 'startNodeId', 'algorithmId']
+        let stepOneField = ['scenario_id', 'startNode_id', 'algorithm_id']
         Promise.all(
           stepOneField.map((field) => {
             return new Promise((resolve, reject) => {
@@ -461,22 +467,15 @@ export default {
         }
       })
     },
-    startTrainingClick() {
-      let newTraining = {
-        id: '10',
-        name: '训练AAA',
-        state: '进行中',
-        time: '2022.10.10',
-        period: '1h.30m.16s',
-        run_machine: 'c1,c3,c7'
-      };
-      addTraining(newTraining).then(response => {
-        this.$store.dispatch("tagsView/delView", this.$route);
-        this.$router.push("/training/index");
-      })
+    async startTrainingClick() {
+      this.trainingForm.create_datetime = new Date();
+      this.trainingForm.action_config = this.actionSpaceConfigForm;
+      let response = await addTraining(this.trainingForm);
+      this.$store.dispatch("tagsView/delView", this.$route);
+      this.$router.push("/training/index");
     },
     selectStartNodeClick() {
-      this.trainingForm.startNodeId = 123;
+      this.trainingForm.startNode_id = 123;
     }
   }
 }
