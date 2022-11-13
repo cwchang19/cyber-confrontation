@@ -278,7 +278,7 @@ export const constantRoutes = [
 
 const createRouter = () => new Router({
   // mode: 'history', // require service support
-  base: '/cyberFront',
+  base: '/cyber/front',
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRoutes
 })
