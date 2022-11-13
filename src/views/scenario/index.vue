@@ -8,7 +8,7 @@
         </el-card>
       </el-col>
       <el-col :span="21">
-        <el-card :body-style="{ padding: '20px' }">
+        <el-card :body-style="{ padding: '20px' }" v-loading="loading">
           <el-row :gutter="20" type="flex" justify="space-between" style="padding: .625rem; padding-top: 0rem;">
             <div class="search-tool">
             </div>
@@ -123,10 +123,12 @@ export default {
       this.fileData = arrayToTree(response.data.items);
     },
     async fetchTableData() {
+      this.loading = true;
       const params = { fid: this.selectedFileId, pageSize: this.pageSize, page: this.page };
       let response = await searchScenario(params);
       this.tableData = response.data.items;
       this.total = response.data.total;
+      this.loading = false;
     },
     async deleteClick() {
       let response = await deleteScenario({id: this.selectedScnId});
