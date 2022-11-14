@@ -94,6 +94,7 @@ export default {
         }
       ]
     });
+    console.log(this.lgflow.getGraphData())
   }
 }
 </script>
