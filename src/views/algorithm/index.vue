@@ -21,8 +21,11 @@
             <el-table-column v-for="(item, index) in tableColumns" :prop="item.prop" :label="item.label"
               :width="item.width" :show-overflow-tooltip="item.showOverflowTooltip || false">
               <template v-if="item.prop === 'operate'" v-slot="scope">
-                <el-button type="warning" size="mini" @click="editClick(scope.row)">编辑</el-button>
-                <el-button type="danger" size="mini" @click="deleteAlgDialogVisible=true; selectedAlgId=scope.row.id">删除</el-button>
+                <div v-if="item.prop === 'operate'">
+                  <el-button type="warning" size="mini" @click="editClick(scope.row)">编辑</el-button>
+                  <el-button type="danger" size="mini" @click="deleteAlgDialogVisible=true; selectedAlgId=scope.row.id">删除</el-button>
+                </div>
+                <!-- <el-link v-else type="primary" :href="'http://101.43.40.128/'+scope.row.algorithm_file">点击下载</el-link> -->
               </template>
             </el-table-column>
           </el-table>
@@ -99,7 +102,8 @@ export default {
         { prop: 'id', label: '序号', width: '100' },
         { prop: 'algorithm_name', label: '算法名', width: '250' },
         { prop: 'algorithm_description', label: '算法描述', width: '', showOverflowTooltip: true },
-        { prop: 'algorithm_file', label: '算法文件', width: '150' },
+        { prop: 'algorithm_file', label: '算法文件', width: '150', showOverflowTooltip: true },
+        { prop: 'algorithm_type', label: '算法类型', width: '100' },
         { prop: 'algorithm_owner', label: '拥有者', width: '150' },
         { prop: 'create_datetime', label: '创建时间', width: '200' },
         { prop: 'operate', label: '操作', width: '150' },

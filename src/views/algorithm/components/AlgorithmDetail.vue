@@ -18,10 +18,15 @@
             :type="item.key === 'algorithm_name' ? '' : 'textarea'" :placeholder="'请输入' + item.label" size="normal"
             clearable @change="">
           </el-input>
-          <el-upload class="upload-demo" v-else action="https://jsonplaceholder.typicode.com/posts/"
-            :on-preview="handlePreview" :on-remove="handleRemove" :before-remove="beforeRemove" multiple :limit="3"
-            :on-exceed="handleExceed" :file-list="fileList">
-            <el-button plain type="primary" icon="el-icon-plus">上传算法文件</el-button>
+          <el-upload 
+            v-else
+            action=""
+            :auto-upload="false"
+            :on-remove="algfileRemove"
+            :on-change="algfileChange"
+            :file-list="fileList"
+            :limit="1">
+            <el-button plain :type="uploadType" icon="el-icon-plus">上传算法文件</el-button>
           </el-upload>
           <!-- <el-button v-else type="primary" plain size="normal" icon="el-icon-plus" @click="">
             点击上传算法文件
@@ -40,7 +45,7 @@
 </template>
 
 <script>
-import { searchAlgorithmByCondition, addAlgorithm, alterAlgorithm } from '@/api/algorithm'
+import { searchAlgorithmByCondition, addAlgorithm, alterAlgorithmInfo, alterAlgorithmFile } from '@/api/algorithm'
 export default {
   name: 'AddAlgorithm',
   components: {
@@ -57,12 +62,14 @@ export default {
   },
   data() {
     return {
+      fileList: [],
+      algfile: null,
+      uploadType: 'primary',
       // 表单
       algorithmForm: {
         algorithm_name: '',
         algorithm_description: '',
         algorithm_file: 'temp.py',
-        algorithm_owner: 'SELF',
         create_datetime: '',
       },
       // 表单每个item的基本属性，通过v-for这个数组就能简单实现表单
@@ -78,9 +85,6 @@ export default {
         ],
         algorithm_description: [
           { required: true, message: '算法描述不能为空', trigger: 'change' },
-        ],
-        algorithm_file: [
-          { required: true, message: '请上传算法文件', trigger: 'change' },
         ]
       }
     }
@@ -88,6 +92,16 @@ export default {
   created() {
     if (this.isEdit) {
       this.fetchData();
+    }
+  },
+  watch: {
+    algfile: function(newVal) {
+      console.log(newVal)
+      if(newVal == null) {
+        this.uploadType = 'danger';
+      } else {
+        this.uploadType = 'success';
+      }
     }
   },
   methods: {
@@ -103,18 +117,32 @@ export default {
     formBtnClick(type) {
       // type === 'confirm' 是确认按钮点击事件，type === 'cancel' 是取消按钮点击事件
       if (type === 'confirm') {
+        if(!this.isEdit && this.algfile == null) {
+          this.uploadType = 'danger';
+          return;
+        }
+        let formData = new FormData();
+
         // 根据formRules验证表单
         this.$refs['algorithmForm'].validate(async (valid) => {
           if (valid) {
             // 验证成功
             if (this.isEdit) {
               // 向后端请求修改算法this.algorithmForm
-              const response = await alterAlgorithm({id: this.algId}, this.algorithmForm);
+              const response = await alterAlgorithmInfo({id: this.algId}, this.algorithmForm);
               console.log(response);
+              if(this.algfile) {
+                formData.append('file', this.algfile.raw);
+                const fresponse = await alterAlgorithmFile({id: this.algId}, formData);
+                console.log(fresponse);
+              }
             } else {
               // 否则向后端请求新增算法this.algorithmForm
               this.algorithmForm.create_datetime = new Date();
-              const response = await addAlgorithm(this.algorithmForm);
+              formData.append('file', this.algfile.raw);
+              formData.append('info', JSON.stringify(this.algorithmForm));
+              const response = await addAlgorithm(formData);
+              console.log('新增', response);
             }
             // 通过 this.$emit('在index.vue页面中给当前这个组件绑定的监听事件名'，要返回的数据) 来触发 index.vue 中的监听事件
             this.$emit('watchClick', 'confirm');
@@ -125,6 +153,12 @@ export default {
       } else {
         this.$emit('watchClick', 'cancel');
       }
+    },
+    algfileRemove(file, fileList) {
+      this.algfile = null;
+    },
+    algfileChange(file, fileList) {
+      this.algfile = file;
     }
   }
 }

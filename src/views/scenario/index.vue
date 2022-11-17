@@ -4,7 +4,10 @@
     <el-row :gutter="10">
       <el-col :span="3">
         <el-card :body-style="{ padding: '20px' }">
-          <el-tree :data="fileData" :props="treeProps" node-key="id" @node-click="handleNodeClick"></el-tree>
+          <div slot="header">
+            <span>文件夹</span>
+          </div>
+          <el-tree :data="dirData" :props="treeProps" node-key="id" @node-click="handleNodeClick"></el-tree>
         </el-card>
       </el-col>
       <el-col :span="21">
@@ -12,11 +15,8 @@
           <el-row :gutter="20" type="flex" justify="space-between" style="padding: .625rem; padding-top: 0rem;">
             <div class="search-tool">
             </div>
-            <router-link :to="'/scenario/add/' + randomStr + selectedFileId">
-              <el-button 
-                type="success" 
-                size="small"
-                :disabled="selectedFileId == ''"
+            <router-link :to="selectedDirId == '' ? $route.fullPath : ('/scenario/add/' + randomStr + selectedDirId)">
+              <el-button type="success" size="small" :disabled="selectedDirId == ''"
                 @click="randomStr = getRamdomStr()">
                 在当前文件夹下新增场景
               </el-button>
@@ -28,15 +28,15 @@
               </el-table-column>
               <el-table-column fixed prop="scenario_name" label="场景名">
               </el-table-column>
-              <el-table-column prop="training_num" label="训练数量">
-              </el-table-column>
               <el-table-column fixed="right" label="操作">
                 <template v-slot="scope">
                   <!-- <el-button type="primary" size="mini" @click="">重命名</el-button> -->
                   <!-- test(scope.row) -->
-                  <el-button type="primary" size="mini" @click="copyScnDialogVisible=true; selectedScnData=scope.row">复制</el-button>
-                  <el-button type="danger" size="mini" @click="deleteScnDialogVisible=true; selectedScnId=scope.row.id">删除</el-button>
-                  <router-link :to="'/training/add/' + scope.row.id + '.' + selectedFileId">
+                  <el-button type="primary" size="mini" @click="copyScnDialogVisible = true; selectedScnData = scope.row">复制
+                  </el-button>
+                  <el-button type="danger" size="mini" @click="deleteScnDialogVisible = true; selectedScnId = scope.row.id">
+                    删除</el-button>
+                  <router-link :to="'/training/add/' + scope.row.id + '.' + selectedDirId">
                     <el-button type="success" size="mini" style="margin-left: .625rem;">训练</el-button>
                   </router-link>
                   <router-link :to="'/scenario/edit/' + scope.row.id">
@@ -47,14 +47,14 @@
             </el-table>
           </el-row>
           <el-row style="padding-top: 1.25rem;" type="flex" justify="center">
-            <el-pagination @current-change="handleCurrentChange" :current-page="page" :page-size="pageSize" :total="total"
-              layout="total, prev, pager, next, jumper">
+            <el-pagination @current-change="handleCurrentChange" :current-page="page" :page-size="pageSize"
+              :total="total" layout="total, prev, pager, next, jumper">
             </el-pagination>
           </el-row>
         </el-card>
       </el-col>
     </el-row>
-    
+
     <el-dialog title="复制场景" v-if="copyScnDialogVisible" :visible.sync="copyScnDialogVisible" width="30%">
       <div style="font-size: medium;">确认复制序号为 {{ selectedScnData.id }} 的场景吗？</div>
       <span slot="footer" class="dialog-footer">
@@ -75,7 +75,7 @@
 
 <script>
 import { searchScenario, addScenario, deleteScenario } from '@/api/scenario'
-import { searchFileById } from '@/api/file'
+import { searchDirectory } from '@/api/directory'
 import { arrayToTree } from '@/utils/other'
 
 export default {
@@ -92,11 +92,11 @@ export default {
       copyScnDialogVisible: false,
       selectedScnId: '',
       selectedScnData: {},
-      selectedFileId: '',
+      selectedDirId: '',
       randomStr: this.getRamdomStr(),
-      fileData: [],
+      dirData: [],
       treeProps: {
-        label: 'filename'
+        label: 'directory_name'
       },
       tableData: []
     }
@@ -104,7 +104,7 @@ export default {
   // 场景页面创建结束时触发的钩子函数
   created() {
     // 请求场景列表
-    this.fetchFileData();
+    this.fetchDirData();
   },
   // 切换回场景标签时触发的钩子函数
   activated() {
@@ -112,37 +112,38 @@ export default {
     this.fetchTableData();
   },
   watch: {
-    selectedFileId: function(val) {
+    selectedDirId: function () {
       this.fetchTableData();
     }
   },
   methods: {
-    async fetchFileData() {
-      let params = { id: 1 };
-      let response = await searchFileById(params);
-      this.fileData = arrayToTree(response.data.items);
+    async fetchDirData() {
+      let params = { type: '场景' };
+      const response = await searchDirectory(params);
+      this.dirData = arrayToTree(response.data);
     },
     async fetchTableData() {
       this.loading = true;
-      const params = { fid: this.selectedFileId, pageSize: this.pageSize, page: this.page };
+      const params = { directory_id: this.selectedDirId, pageSize: this.pageSize, page: this.page };
       let response = await searchScenario(params);
       this.tableData = response.data.items;
       this.total = response.data.total;
       this.loading = false;
     },
     async deleteClick() {
-      let response = await deleteScenario({id: this.selectedScnId});
+      let response = await deleteScenario({ id: this.selectedScnId });
       this.deleteScnDialogVisible = false;
       this.fetchTableData();
     },
     async copyClick() {
-      let response = await addScenario(this.selectedScnData);
+      console.log(this.selectedScnData);
+      // let response = await addScenario(this.selectedScnData);
       this.copyScnDialogVisible = false;
       this.fetchTableData();
     },
     handleNodeClick(data) {
       this.page = 1;
-      this.selectedFileId = data.id;
+      this.selectedDirId = data.id;
     },
     getRamdomStr() {
       return Math.random().toString(36).slice(-8);

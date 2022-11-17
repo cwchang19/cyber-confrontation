@@ -10,18 +10,29 @@ export function searchAlgorithmByCondition(params) {
 
 export function addAlgorithm(data) {
   return request({
-    url: '/api/algorithm',
+    url: '/api/algorithm/upload',
     method: 'post',
+    data,
+    headers: {'Content-Type':  "multipart/form-data"}
+  })
+}
+
+export function alterAlgorithmInfo(params, data) {
+  return request({
+    url: '/api/algorithm/info',
+    method: 'put',
+    params: params,
     data
   })
 }
 
-export function alterAlgorithm(params, data) {
+export function alterAlgorithmFile(params, data) {
   return request({
-    url: '/api/algorithm',
-    method: 'put',
+    url: '/api/algorithm/algorithm_file',
+    method: 'post',
     params: params,
-    data
+    data,
+    headers: {'Content-Type':  "multipart/form-data"}
   })
 }
 

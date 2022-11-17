@@ -4,7 +4,10 @@
     <el-row :gutter="10">
       <el-col :span="3">
         <el-card :body-style="{ padding: '20px' }">
-          <el-tree :data="fileData" :props="treeProps" node-key="id" @node-click="handleNodeClick"></el-tree>
+          <div slot="header">
+            <span>文件夹</span>
+          </div>
+          <el-tree :data="dirData" :props="treeProps" node-key="id" @node-click="handleNodeClick"></el-tree>
         </el-card>
       </el-col>
       <el-col :span="21">
@@ -12,11 +15,11 @@
           <el-row :gutter="20" type="flex" justify="space-between" style="padding: .625rem; padding-top: 0rem;">
             <div class="search-tool">
             </div>
-            <router-link :to="'/training/add/.' + selectedFileId + '.' + randomStr">
+            <router-link :to="selectedDirId == '' ? $route.fullPath : ('/training/add/.' + selectedDirId + '.' + randomStr)">
               <el-button 
                 type="success" 
                 size="small"
-                :disabled="selectedFileId == ''"
+                :disabled="selectedDirId == ''"
                 @click="randomStr = getRamdomStr()">
                 在当前文件夹下新增训练
               </el-button>
@@ -39,16 +42,16 @@
               <el-table-column fixed="right" label="操作" width="400">
                 <template slot-scope="scope">
                   <!-- <el-button type="primary" size="small">重命名</el-button> -->
-                  <el-button v-if="scope.row.training_state === '训练中'" type="success" size="small">暂停</el-button>
-                  <router-link :to="'/training/simulation/' + scope.row.id">
-                    <el-button v-if="scope.row.training_state === '成功'" type="success" size="small">仿真</el-button>
+                  <el-button v-if="scope.row.training_state === '运行中'" type="success" size="small">暂停</el-button>
+                  <router-link v-else :to="'/training/simulation/' + scope.row.id" style="padding-right: .625rem;">
+                    <el-button type="success" size="small">仿真</el-button>
                   </router-link>
-                  <router-link :to="'/training/simulation/' + scope.row.id">
-                    <el-button v-if="scope.row.training_state === '失败'" type="success" size="small">仿真</el-button>
-                  </router-link>
+                  <!-- <router-link :to="'/training/simulation/' + scope.row.id">
+                    <el-button v-if="scope.row.training_state === '运行异常'" type="success" size="small">仿真</el-button>
+                  </router-link> -->
                   <el-button type="info" size="small" @click="deleteTrnDialogVisible=true; selectedTrnId=scope.row.id">删除</el-button>
-                  <el-button v-if="scope.row.training_state === '成功'" type="warning" size="small">查看结果</el-button>
-                  <el-button v-if="scope.row.training_state === '失败'" type="warning" size="small">报错信息</el-button>
+                  <el-button v-if="scope.row.training_state === '已完成'" type="warning" size="small">查看结果</el-button>
+                  <el-button v-if="scope.row.training_state === '运行异常'" type="warning" size="small">报错信息</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -75,7 +78,7 @@
 
 <script>
 import { searchTraining, deleteTraining } from '@/api/training'
-import { searchFileById } from '@/api/file'
+import { searchDirectory } from '@/api/directory'
 import { arrayToTree } from '@/utils/other'
 
 export default {
@@ -91,35 +94,36 @@ export default {
       deleteTrnDialogVisible: false,
       selectedTrnId: '',
       selectedTrnData: {},
-      selectedFileId: '',
+      selectedDirId: '',
       randomStr: this.getRandomStr(),
-      fileData: [],
+      dirData: [],
       treeProps: {
-        label: 'filename'
+        label: 'directory_name'
       },
       tableData: []
     }
   },
   created() {
-    this.fetchFileData();
+    this.fetchDirData();
   },
   activated() {
     this.fetchTableData();
   },
   watch: {
-    selectedFileId: function(val) {
+    selectedDirId: function() {
       this.fetchTableData();
     }
   },
   methods: {
-    async fetchFileData() {
-      let params = { id: 1 };
-      let response = await searchFileById(params);
-      this.fileData = arrayToTree(response.data.items);
+    async fetchDirData() {
+      let params = { type: '训练' };
+      const response = await searchDirectory(params);
+      console.log(response);
+      this.dirData = arrayToTree(response.data);
     },
     async fetchTableData() {
       this.loading = true;
-      const params = { fid: this.selectedFileId, pageSize: this.pageSize, page: this.page };
+      const params = { directory_id: this.selectedDirId, pageSize: this.pageSize, page: this.page };
       let response = await searchTraining(params);
       this.tableData = response.data.items;
       this.total = response.data.total;
@@ -132,7 +136,7 @@ export default {
     },
     handleNodeClick(data) {
       this.page = 1;
-      this.selectedFileId = data.id;
+      this.selectedDirId = data.id;
     },
     getRandomStr() {
       return Math.random().toString(36).slice(-8);
