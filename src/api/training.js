@@ -15,6 +15,13 @@ export function searchTrainingById(id) {
   })
 }
 
+export function searchTrainingAll() {
+  return request({
+    url: '/api/training/all',
+    method: 'get'
+  })
+}
+
 export function addTraining(data) {
   return request({
     url: '/api/training/',

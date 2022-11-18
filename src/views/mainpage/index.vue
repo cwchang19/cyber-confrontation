@@ -1,7 +1,8 @@
 <template>
   <div class="scenario">
     <el-row>
-      <el-col :span="12"><div class="grid-content bg-purple"></div>
+      <el-col :span="12">
+        <div class="grid-content bg-purple"></div>
         <div align="center">
           <el-card class="box-card">
             <div slot="header" class="clearfix">
@@ -12,11 +13,12 @@
                 <el-button style="float: right; padding: 3px 0" type="text">查看详情</el-button>
               </router-link>
             </div>
-            <div class="text item">123</div>
+            <div class="text item">{{ scenarioNum }}</div>
           </el-card>
         </div>
       </el-col>
-      <el-col :span="12"><div class="grid-content bg-purple-light"></div>
+      <el-col :span="12">
+        <div class="grid-content bg-purple-light"></div>
         <div align="center">
           <el-card class="box-card">
             <div slot="header" class="clearfix">
@@ -27,7 +29,7 @@
                 <el-button style="float: right; padding: 3px 0" type="text">查看详情</el-button>
               </router-link>
             </div>
-            <div class="text item">56</div>
+            <div class="text item">{{ trainingNum }}</div>
           </el-card>
         </div>
       </el-col>
@@ -35,45 +37,60 @@
     <div align="center">网络攻防对抗系统用户操作流程概要简介</div>
     <el-divider></el-divider>
     <div align="center">
-      <el-image :src="require('@/assets/img/frontpic.png')"  fit="contain" ></el-image>
+      <el-image :src="require('@/assets/img/frontpic.png')" fit="contain"></el-image>
     </div>
   </div>
 </template>
 
 <script>
-  export default {
-    name: 'MainPage',
-    components: {
-
-    },
-    data() {
-      return {
-        
-      }
-    },
+import { searchScenarioAll } from '@/api/scenario'
+import { searchTrainingAll } from '@/api/training'
+export default {
+  name: 'MainPage',
+  data() {
+    return {
+      scenarioNum: 0,
+      trainingNum: 0,
+    }
+  },
+  created() {
+    this.fetchData();
+  },
+  activated() {
+    this.fetchData();
+  },
+  methods: {
+    async fetchData() {
+      const scnResponse = await searchScenarioAll();
+      const trnResponse = await searchTrainingAll();
+      this.scenarioNum = scnResponse.data.length;
+      this.trainingNum = trnResponse.data.length;
+    }
   }
+}
 </script>
 
 <style>
-  .text {
-    font-size: 24px;
-  }
+.text {
+  font-size: 24px;
+}
 
-  .item {
-    margin-bottom: 12px;
-  }
+.item {
+  margin-bottom: 12px;
+}
 
-  .clearfix:before,
-  .clearfix:after {
-    display: table;
-    content: "";
-  }
-  .clearfix:after {
-    clear: both
-  }
+.clearfix:before,
+.clearfix:after {
+  display: table;
+  content: "";
+}
 
-  .box-card {
-    width: 240px;
-  }
+.clearfix:after {
+  clear: both
+}
+
+.box-card {
+  width: 240px;
+}
 </style>
 
