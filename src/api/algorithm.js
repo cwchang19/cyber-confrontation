@@ -8,6 +8,20 @@ export function searchAlgorithmByCondition(params) {
   })
 }
 
+export function searchAlgorithmById(id) {
+  return request({
+    url: '/api/algorithm/' + id,
+    method: 'get'
+  })
+}
+
+export function searchAlgorithmAll() {
+  return request({
+    url: '/api/algorithm/all',
+    method: 'get',
+  })
+}
+
 export function addAlgorithm(data) {
   return request({
     url: '/api/algorithm/upload',
@@ -17,29 +31,26 @@ export function addAlgorithm(data) {
   })
 }
 
-export function alterAlgorithmInfo(params, data) {
+export function alterAlgorithmInfo(id, data) {
   return request({
-    url: '/api/algorithm/info',
+    url: '/api/algorithm/info/' + id,
     method: 'put',
-    params: params,
     data
   })
 }
 
-export function alterAlgorithmFile(params, data) {
+export function alterAlgorithmFile(id, data) {
   return request({
-    url: '/api/algorithm/algorithm_file',
+    url: '/api/algorithm/algorithm_file/' + id,
     method: 'post',
-    params: params,
     data,
     headers: {'Content-Type':  "multipart/form-data"}
   })
 }
 
-export function deleteAlgorithm(params) {
+export function deleteAlgorithm(id) {
   return request({
-    url: '/api/algorithm',
+    url: '/api/algorithm/' + id,
     method: 'delete',
-    params: params
   })
 }

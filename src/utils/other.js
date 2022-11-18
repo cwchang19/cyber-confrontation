@@ -1,42 +1,7 @@
-export function arrayToTree1(items) {
-  items.sort((a, b) => { return a.id - b.id });
-  console.log(items);
-  const result = [];   // 存放结果集
-  const itemMap = {};  // 
-  for (const item of items) {
-    const id = item.id + '';
-    const directory_parent_id = item.directory_parent_id;
-    console.log(directory_parent_id);
-
-    if (!itemMap[id]) {
-      itemMap[id] = {
-        children: [],
-      }
-    }
-
-    itemMap[id] = {
-      ...item,
-      children: itemMap[id]['children']
-    }
-
-    const treeItem = itemMap[id];
-
-    if (directory_parent_id === 0) {
-      result.push(treeItem);
-    } else {
-      if (!itemMap[directory_parent_id]) {
-        itemMap[directory_parent_id] = {
-          children: [],
-        }
-      }
-      itemMap[directory_parent_id].children.push(treeItem)
-    }
-
-  }
-  return result;
-}
-
 export function arrayToTree(items) {
+  items.sort((a, b) => { 
+    return parseInt(a.id) - parseInt(b.id) 
+  });
   items.sort((a, b) => { 
     return parseInt(a.directory_parent_id) - parseInt(b.directory_parent_id) 
   });
@@ -62,4 +27,21 @@ export function arrayToTree(items) {
   })
   console.log(treeList);
   return treeList
+}
+
+export function deepCopy(object) {
+  if(!object || typeof object !== 'object') {
+    return object;
+  }
+  
+  let newObject = Array.isArray(object) ? [] : {};
+  
+  // 通过递归实现
+  for(let key in object) {
+    if(object.hasOwnProperty(key)) {
+      newObject[key] = deepCopy(object[key]);
+    }
+  }
+  
+  return newObject;
 }

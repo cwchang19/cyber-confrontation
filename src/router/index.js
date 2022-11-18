@@ -77,7 +77,7 @@ export const constantRoutes = [
     },
     children: [
       {
-        path: 'edit/:id(\\d+)',
+        path: 'edit/:str',
         component: () => import('@/views/scenario/edit'),
         name: 'EditScenario',
         meta: { title: '修改场景', activeMenu: '/scenario/index' },
@@ -88,7 +88,7 @@ export const constantRoutes = [
         }
       },
       {
-        path: 'add/:fid',
+        path: 'add/:did',
         component: () => import('@/views/scenario/add'),
         name: 'AddScenario',
         meta: { title: '新增场景', activeMenu: '/scenario/index' },

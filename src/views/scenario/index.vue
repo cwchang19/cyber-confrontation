@@ -2,15 +2,44 @@
   <div class="scenario-container">
     <h1>场景列表</h1>
     <el-row :gutter="10">
-      <el-col :span="3">
+      <el-col :span="4">
         <el-card :body-style="{ padding: '20px' }">
           <div slot="header">
-            <span>文件夹</span>
+            <span>目录</span>
+            <el-popover placement="right" width="160" v-model="addRootDirDialogVisible">
+              <el-row style="padding-bottom: .3125rem;">
+                <el-input v-model="dirName" placeholder="请输入目录名" size="mini"></el-input>
+              </el-row>
+              <el-row style="text-align: right; margin: 0">
+                <el-button size="mini" type="text" @click="addRootDirDialogVisible = false">取消</el-button>
+                <el-button type="primary" size="mini" @click="addDirClick(0)">确定</el-button>
+              </el-row>
+              <el-button type="text" size="mini" icon="el-icon-plus" style="float: right; padding: 3px 0"
+                slot="reference">
+                新建一级目录</el-button>
+            </el-popover>
           </div>
-          <el-tree :data="dirData" :props="treeProps" node-key="id" @node-click="handleNodeClick"></el-tree>
+          <el-row>
+            <el-tree :data="dirData" :props="treeProps" node-key="id" @node-click="handleNodeClick">
+              <span class="custom-tree-node" slot-scope="{ node, data }">
+                <span>{{ node.label }}</span>
+                <span>
+                  <el-button type="text" size="mini" icon="el-icon-plus" slot="reference"
+                    @click.stop="showDirDialog('add', data)">
+                  </el-button>
+                  <el-button type="text" size="mini" icon="el-icon-edit" slot="reference"
+                    @click.stop="showDirDialog('edit', data)">
+                  </el-button>
+                  <el-button type="text" size="mini" icon="el-icon-delete" slot="reference"
+                    @click.stop="showDirDialog('delete', data)">
+                  </el-button>
+                </span>
+              </span>
+            </el-tree>
+          </el-row>
         </el-card>
       </el-col>
-      <el-col :span="21">
+      <el-col :span="20">
         <el-card :body-style="{ padding: '20px' }" v-loading="loading">
           <el-row :gutter="20" type="flex" justify="space-between" style="padding: .625rem; padding-top: 0rem;">
             <div class="search-tool">
@@ -32,14 +61,16 @@
                 <template v-slot="scope">
                   <!-- <el-button type="primary" size="mini" @click="">重命名</el-button> -->
                   <!-- test(scope.row) -->
-                  <el-button type="primary" size="mini" @click="copyScnDialogVisible = true; selectedScnData = scope.row">复制
-                  </el-button>
-                  <el-button type="danger" size="mini" @click="deleteScnDialogVisible = true; selectedScnId = scope.row.id">
+                  <!-- <el-button type="primary" size="mini"
+                    @click="copyScnDialogVisible = true; selectedScnData = scope.row">复制
+                  </el-button> -->
+                  <el-button type="danger" size="mini"
+                    @click="deleteScnDialogVisible = true; selectedScnId = scope.row.id">
                     删除</el-button>
-                  <router-link :to="'/training/add/' + scope.row.id + '.' + selectedDirId">
+                  <router-link :to="'/training/add/' + scope.row.id">
                     <el-button type="success" size="mini" style="margin-left: .625rem;">训练</el-button>
                   </router-link>
-                  <router-link :to="'/scenario/edit/' + scope.row.id">
+                  <router-link :to="'/scenario/edit/' + scope.row.id + '.' + selectedDirId">
                     <el-button type="warning" size="mini" style="margin-left: .625rem;" @click="">修改</el-button>
                   </router-link>
                 </template>
@@ -70,13 +101,36 @@
         <el-button type="danger" @click="deleteClick">确定</el-button>
       </span>
     </el-dialog>
+
+    <el-dialog title="新建目录" v-if="addDirDialogVisible" :visible.sync="addDirDialogVisible" width="30%">
+      <el-input v-model="dirName" placeholder="请输入目录名" size="small"></el-input>
+      <span slot="footer">
+        <el-button @click="addDirDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="addDirClick">确认</el-button>
+      </span>
+    </el-dialog>
+    <el-dialog title="修改目录" v-if="editDirDialogVisible" :visible.sync="editDirDialogVisible" width="30%">
+      <el-input v-model="dirName" placeholder="请输入目录名" size="small"></el-input>
+      <span slot="footer">
+        <el-button @click="editDirDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="editDirClick">确认</el-button>
+      </span>
+    </el-dialog>
+    <el-dialog title="刪除目录" v-if="deleteDirDialogVisible" :visible.sync="deleteDirDialogVisible" width="30%">
+      <span style="color: red;">确认删除“{{ curDir.directory_name }}”目录吗？</span>
+      <span slot="footer">
+        <el-button @click="deleteDirDialogVisible = false">取消</el-button>
+        <el-button type="danger" @click="deleteDirClick">确认</el-button>
+      </span>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
 import { searchScenario, addScenario, deleteScenario } from '@/api/scenario'
-import { searchDirectory } from '@/api/directory'
-import { arrayToTree } from '@/utils/other'
+import { searchDirectory, addDirectory, alterDirectory, deleteDirectory } from '@/api/directory'
+import { arrayToTree, deepCopy } from '@/utils/other'
 
 export default {
   data() {
@@ -90,6 +144,13 @@ export default {
       tempSearchText: '',
       deleteScnDialogVisible: false,
       copyScnDialogVisible: false,
+      parentDirId: 0,
+      dirName: '',
+      curDir: null,
+      addRootDirDialogVisible: false,
+      addDirDialogVisible: false,
+      editDirDialogVisible: false,
+      deleteDirDialogVisible: false,
       selectedScnId: '',
       selectedScnData: {},
       selectedDirId: '',
@@ -114,12 +175,25 @@ export default {
   watch: {
     selectedDirId: function () {
       this.fetchTableData();
+    },
+    addRootDirDialogVisible: function (val) {
+      if(!val)
+        this.dirName = '';
+    },
+    addDirDialogVisible: function (val) {
+      if(!val)
+        this.dirName = '';
+    },
+    editDirDialogVisible: function (val) {
+      if(!val)
+        this.dirName = '';
     }
   },
   methods: {
     async fetchDirData() {
       let params = { type: '场景' };
       const response = await searchDirectory(params);
+      console.log('dir', response);
       this.dirData = arrayToTree(response.data);
     },
     async fetchTableData() {
@@ -131,7 +205,7 @@ export default {
       this.loading = false;
     },
     async deleteClick() {
-      let response = await deleteScenario({ id: this.selectedScnId });
+      let response = await deleteScenario(this.selectedScnId);
       this.deleteScnDialogVisible = false;
       this.fetchTableData();
     },
@@ -152,6 +226,57 @@ export default {
       this.page = curPage;
       this.fetchTableData();
     },
+    showDirDialog(type, data) {
+      if (type == 'add') {
+        this.addDirDialogVisible = true;
+        this.parentDirId = data.id;
+        console.log(this.parentDirId)
+      } else if (type == 'edit') {
+        this.editDirDialogVisible = true;
+        this.curDir = data;
+        this.dirName = data.directory_name;
+      } else {
+        this.deleteDirDialogVisible = true;
+        this.curDir = data;
+      }
+    },
+    async addDirClick() {
+      let pid = this.parentDirId;
+      if (this.dirName == '') {
+        this.$message.error('目录名不能为空');
+        return;
+      }
+      let data = {
+        directory_name: this.dirName,
+        directory_type: '场景',
+        directory_parent_id: parseInt(pid),
+      }
+      const response = await addDirectory(data);
+      this.addDirDialogVisible = false;
+      this.addRootDirDialogVisible = false;
+      this.fetchDirData();
+      this.parentDirId = 0;
+    },
+    async editDirClick() {
+      if (this.dirName == '') {
+        this.$message.error('目录名不能为空');
+        return;
+      }
+      let data = deepCopy(this.curDir);
+      data.directory_name = this.dirName;
+      const response = await alterDirectory(data.id, data);
+      console.log(response);
+      this.editDirDialogVisible = false;
+      this.fetchDirData();
+    },
+    async deleteDirClick() {
+      let data = this.curDir;
+      const response = await deleteDirectory(data.id);
+      console.log(response);
+      this.deleteDirDialogVisible = false;
+      this.fetchDirData();
+    }
+
   }
 }
 </script>
@@ -159,5 +284,14 @@ export default {
 <style scoped>
 .scenario-container {
   padding: 1.25rem;
+}
+
+.custom-tree-node {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  padding-right: 8px;
 }
 </style>

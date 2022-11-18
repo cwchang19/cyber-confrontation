@@ -143,12 +143,13 @@ export default {
       this.addAlgDialogVisible = true;
     },
     editClick(row) {
+      console.log(row);
       this.selectedAlgId = row.id;
       this.editAlgDialogVisible = true;
     },
     async deleteClick() {
       // 根据id请求后端删除对应算法
-      const response = await deleteAlgorithm({ id: this.selectedAlgId });
+      const response = await deleteAlgorithm(this.selectedAlgId);
       this.deleteAlgDialogVisible = false;
       // 删除算法后重新请求数据
       this.fetchData();

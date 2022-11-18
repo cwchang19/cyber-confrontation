@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import { searchAlgorithmByCondition, addAlgorithm, alterAlgorithmInfo, alterAlgorithmFile } from '@/api/algorithm'
+import { searchAlgorithmById, addAlgorithm, alterAlgorithmInfo, alterAlgorithmFile } from '@/api/algorithm'
 export default {
   name: 'AddAlgorithm',
   components: {
@@ -108,10 +108,8 @@ export default {
     async fetchData() {
       const id = this.algId;
       // 根据id请求数据
-      let response = await searchAlgorithmByCondition({ id: id });
-      if(response.data.total > 0) {
-        this.algorithmForm = response.data.items[0];
-      }
+      let response = await searchAlgorithmById(id);
+      this.algorithmForm = response.data;
     },
     // 表单的确认和取消按钮的点击事件
     formBtnClick(type) {
@@ -129,11 +127,11 @@ export default {
             // 验证成功
             if (this.isEdit) {
               // 向后端请求修改算法this.algorithmForm
-              const response = await alterAlgorithmInfo({id: this.algId}, this.algorithmForm);
+              const response = await alterAlgorithmInfo(this.algId, this.algorithmForm);
               console.log(response);
               if(this.algfile) {
                 formData.append('file', this.algfile.raw);
-                const fresponse = await alterAlgorithmFile({id: this.algId}, formData);
+                const fresponse = await alterAlgorithmFile(this.algId, formData);
                 console.log(fresponse);
               }
             } else {
