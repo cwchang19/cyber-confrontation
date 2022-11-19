@@ -140,7 +140,7 @@ export default {
   created() {
     if (this.isEdit) {
       [this.scenario_id, this.directory_id] = (this.$route.params && this.$route.params.str).split('.');
-      console.log(this.scenario_id, this.directory_id);
+      // console.log(this.scenario_id, this.directory_id);
       // 根据 id 请求场景信息
       this.fetchData();
     } else {
@@ -168,12 +168,12 @@ export default {
               directory_id: parseInt(this.directory_id),
             }
             let response = await alterScenario(this.scenario_id, params, JSON.parse(this.jsonData));
-            console.log(response);
+            // console.log(response);
           } else {
             // let response = await addScenario(this.scenarioForm);
             if (type == 'isGenerate') {
               const response = await generateScenario(this.scenarioForm);
-              console.log(response);
+              // console.log(response);
             } else {
               const params = {
                 name: this.scenarioForm.name,

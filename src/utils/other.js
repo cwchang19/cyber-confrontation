@@ -25,7 +25,7 @@ export function arrayToTree(items) {
       treeList.push(item)
     }
   })
-  console.log(treeList);
+  // console.log(treeList);
   return treeList
 }
 

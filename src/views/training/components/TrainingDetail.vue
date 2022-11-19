@@ -451,9 +451,9 @@ export default {
         }
       }
       data.directory_id = data.directory_id[0];
-      console.log(data);
+      // console.log(data);
       let response = await addTraining(data);
-      console.log(response);
+      // console.log(response);
       this.$store.dispatch("tagsView/delView", this.$route);
       this.$router.push("/training/index");
     },

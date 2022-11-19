@@ -204,7 +204,7 @@ export default {
     async fetchDirData() {
       let params = { type: '训练' };
       const response = await searchDirectory(params);
-      console.log(response);
+      // console.log(response);
       this.dirData = arrayToTree(response.data);
     },
     async fetchTableData() {
@@ -269,14 +269,14 @@ export default {
       let data = deepCopy(this.curDir);
       data.directory_name = this.dirName;
       const response = await alterDirectory(data.id, data);
-      console.log(response);
+      // console.log(response);
       this.editDirDialogVisible = false;
       this.fetchDirData();
     },
     async deleteDirClick() {
       let data = this.curDir;
       const response = await deleteDirectory(data.id);
-      console.log(response);
+      // console.log(response);
       this.deleteDirDialogVisible = false;
       this.fetchDirData();
     },
@@ -285,7 +285,7 @@ export default {
         // file_path: row.training_path + row[type],
         file_path: row.training_path + row[type],
       };
-      console.log(params);
+      // console.log(params);
       const response = await downloadTraining(params);
       const blob = new Blob([response]);
       const filename = row[type];
@@ -298,7 +298,7 @@ export default {
       elink.click();
       URL.revokeObjectURL(elink.href);
       document.body.removeChild(elink);
-      console.log(response);
+      // console.log(response);
     },
     async pauseClick(id) {
       const response = await pauseTraining(id);

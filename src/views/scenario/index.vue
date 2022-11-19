@@ -193,7 +193,7 @@ export default {
     async fetchDirData() {
       let params = { type: '场景' };
       const response = await searchDirectory(params);
-      console.log('dir', response);
+      // console.log('dir', response);
       this.dirData = arrayToTree(response.data);
     },
     async fetchTableData() {
@@ -210,7 +210,7 @@ export default {
       this.fetchTableData();
     },
     async copyClick() {
-      console.log(this.selectedScnData);
+      // console.log(this.selectedScnData);
       // let response = await addScenario(this.selectedScnData);
       this.copyScnDialogVisible = false;
       this.fetchTableData();
@@ -230,7 +230,7 @@ export default {
       if (type == 'add') {
         this.addDirDialogVisible = true;
         this.parentDirId = data.id;
-        console.log(this.parentDirId)
+        // console.log(this.parentDirId)
       } else if (type == 'edit') {
         this.editDirDialogVisible = true;
         this.curDir = data;
@@ -265,14 +265,14 @@ export default {
       let data = deepCopy(this.curDir);
       data.directory_name = this.dirName;
       const response = await alterDirectory(data.id, data);
-      console.log(response);
+      // console.log(response);
       this.editDirDialogVisible = false;
       this.fetchDirData();
     },
     async deleteDirClick() {
       let data = this.curDir;
       const response = await deleteDirectory(data.id);
-      console.log(response);
+      // console.log(response);
       this.deleteDirDialogVisible = false;
       this.fetchDirData();
     }

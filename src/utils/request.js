@@ -13,6 +13,7 @@ const service = axios.create({
 // request interceptor
 service.interceptors.request.use(
   config => {
+    // console.log('config', config);
     // do something before request is sent
 
     if (store.getters.token) {
@@ -25,7 +26,7 @@ service.interceptors.request.use(
   },
   error => {
     // do something with request error
-    console.log(error) // for debug
+    // console.log(error) // for debug
     return Promise.reject(error)
   }
 )
@@ -46,7 +47,7 @@ service.interceptors.response.use(
     const headers = response.headers
     const res = response.data
 
-    console.log(headers);
+    // console.log('res', response);
     if(headers['content-type'] === 'application/octet-stream'){
       return res;
     }
@@ -78,7 +79,7 @@ service.interceptors.response.use(
     }
   },
   error => {
-    console.log('err' + error) // for debug
+    // console.log('err' + error) // for debug
     Message({
       message: error.message,
       type: 'error',
