@@ -90,7 +90,7 @@ export default {
   },
   watch: {
     algfile: function (newVal) {
-      console.log(newVal)
+      // console.log(newVal)
       if (newVal == null) {
         this.uploadType = 'danger';
       } else {
@@ -121,11 +121,11 @@ export default {
             if (this.isEdit) {
               // 向后端请求修改算法this.algorithmForm
               const response = await alterAlgorithmInfo(this.algId, this.algorithmForm);
-              console.log(response);
+              // console.log(response);
               if (this.algfile) {
                 formData.append('file', this.algfile.raw);
                 const fresponse = await alterAlgorithmFile(this.algId, formData);
-                console.log(fresponse);
+                // console.log(fresponse);
               }
             } else {
               // 否则向后端请求新增算法this.algorithmForm
@@ -133,7 +133,7 @@ export default {
               formData.append('file', this.algfile.raw);
               formData.append('info', JSON.stringify(this.algorithmForm));
               const response = await addAlgorithm(formData);
-              console.log('新增', response);
+              // console.log('新增', response);
             }
             // 通过 this.$emit('在index.vue页面中给当前这个组件绑定的监听事件名'，要返回的数据) 来触发 index.vue 中的监听事件
             this.$emit('watchClick', 'confirm');

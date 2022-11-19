@@ -122,7 +122,7 @@
       fetchData(data) {
         if(!data) {
           searchAllAlgorithm().then(response => {
-            console.log(response);
+            // console.log(response);
           })
         }
         // 请求算法列表，this.tableData = 请求到的数据
@@ -142,7 +142,7 @@
         this.fetchData();
       },
       dialogClick(data) {
-        console.log(data);
+        // console.log(data);
         if(data === 'confirm') {
           // 如果返回'confirm'，表示有数据被新增或修改了，为了实时显示新增或修改后的数据，重新请求数据
           this.fetchData();

@@ -93,11 +93,11 @@ export default {
         page: 1
       }
       const actresponse = await searchActionByCondition(actparams)
-      console.log(actresponse)
+      // console.log(actresponse)
       const algresponse = await searchAlgorithmByCondition(algparams)
-      console.log(algresponse)
+      // console.log(algresponse)
       const userresponse = await searchUserByCondition(userparams)
-      console.log(userresponse)
+      // console.log(userresponse)
       this.actNum = actresponse.data.total
       this.algNum = algresponse.data.total
       this.userNum = userresponse.data.total

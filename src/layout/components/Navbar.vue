@@ -26,7 +26,7 @@
             <span style="display:block;">Log Out</span>
           </el-dropdown-item>
           <el-dropdown-item divided @click.native="tlogout">
-            <span style="display:block;">Temp Log Out</span>
+            <span style="display:block;">Force Log Out</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>

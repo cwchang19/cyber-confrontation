@@ -185,8 +185,8 @@ export default {
       this.$refs['userForm'].validate(async (valid) => {
         if (valid) {
           if (this.isEdit) {
-            console.log(this.selectedUserId)
-            console.log(this.userForm)
+            // console.log(this.selectedUserId)
+            // console.log(this.userForm)
             const response = await alterUser(this.selectedUserId, this.userForm)
           } else {
             this.userForm.create_datetime = new Date()
