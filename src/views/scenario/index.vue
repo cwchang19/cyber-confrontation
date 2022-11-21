@@ -40,7 +40,7 @@
         </el-card>
       </el-col>
       <el-col :span="20">
-        <el-card :body-style="{ padding: '20px' }" v-loading="loading">
+        <el-card :body-style="{ padding: '20px' }" v-loading="loading || selectedDirId == ''">
           <el-row :gutter="20" type="flex" justify="space-between" style="padding: .625rem; padding-top: 0rem;">
             <div class="search-tool">
             </div>

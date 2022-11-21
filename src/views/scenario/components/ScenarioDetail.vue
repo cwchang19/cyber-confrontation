@@ -163,11 +163,12 @@ export default {
       this.$refs['scenarioForm'].validate(async (valid) => {
         if (valid) {
           if (this.isEdit) {
+            console.log(this.directory_id)
             const params = {
               name: this.scenarioForm.name,
               directory_id: parseInt(this.directory_id),
             }
-            let response = await alterScenario(this.scenario_id, params, JSON.parse(this.jsonData));
+            let response = await alterScenario(parseInt(this.scenario_id), params, JSON.parse(this.jsonData));
             // console.log(response);
           } else {
             // let response = await addScenario(this.scenarioForm);
