@@ -29,9 +29,6 @@
       </el-col>
       <el-col :span="18" :offset="0" class="content-col">
         <el-card shadow="always" :body-style="{ padding: '0px' }">
-          <div slot="header">
-            <span>可视化创建</span>
-          </div>
           <el-button type="primary" size="default" @click="saveScenarioClick">保存</el-button>
         </el-card>
       </el-col>

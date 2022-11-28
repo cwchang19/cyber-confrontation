@@ -9,6 +9,7 @@
 LogicFlow.use(Control);
 LogicFlow.use(DndPanel);
 LogicFlow.use(SelectionSelect);
+LogicFlow.use(Group);
 export default {
   name: 'Visualization',
   components: {},
@@ -71,26 +72,29 @@ export default {
     this.lgflow.render({
       nodes: [
         {
-          id: "1",
-          type: "rect",
-          x: 100,
-          y: 100,
-          text: "节点1"
+          type: "my-group",
+          x: 400,
+          y: 400,
+          children: ["rect_2"]
         },
         {
-          id: "2",
+          id: "rect_2",
           type: "circle",
-          x: 300,
-          y: 200,
-          text: "节点2"
-        }
-      ],
-      edges: [
+          x: 400,
+          y: 400
+        },
         {
-          sourceNodeId: "1",
-          targetNodeId: "2",
-          type: "polyline",
-          text: "连线"
+          id: "rect_3",
+          type: "rect",
+          x: 200,
+          y: 100
+        },
+        {
+          id: "group_2",
+          type: "sub-process",
+          x: 300,
+          y: 120,
+          children: ["rect_3"]
         }
       ]
     });

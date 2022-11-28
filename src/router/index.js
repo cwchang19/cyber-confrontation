@@ -167,7 +167,7 @@ export const constantRoutes = [
     children: [
       {
         path: 'index',
-        component: () => import('@/components/Visualization/index'),
+        component: () => import('@/views/visualization/index'),
         name: 'VisualizationContent',
         meta: { title: '可视化', icon: 'dashboard' }
       }
