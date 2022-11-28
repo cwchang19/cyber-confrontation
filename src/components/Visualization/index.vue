@@ -18,7 +18,8 @@
                       <span>{{ `子网 ${subnetKey}` }}</span>
                       <el-button style="float: right; padding: 0px 5px" type="text" plain
                         @click="deleteSubnetClick(subnetKey)">删除</el-button>
-                      <el-button style="float: right; padding: 0px 5px" type="text" plain @click="">连接</el-button>
+                      <el-button style="float: right; padding: 0px 5px" type="text" plain
+                        @click="openTopologyDialog(subnetKey)">连接</el-button>
                     </div>
                     <div v-for="(host, hostKey) in subnet.hosts" :key="hostKey" class="host-item">
                       <span :style="'color:' + (host.isSensitive ? '#F56C6C' : '#67C23A')">
@@ -47,9 +48,12 @@
               </el-row>
             </el-col>
             <el-col :span="12" style="height: 100%;">
-              <el-row style="height: 50%">
+              <el-row style="height: 60%">
+                <div id="echarts-content"></div>
               </el-row>
-              <el-row style="height: 50%">
+              <el-row style="height: 40%">
+                <el-button type="primary" size="default" @click="test()">test
+                </el-button>
               </el-row>
             </el-col>
           </el-row>
@@ -84,11 +88,13 @@
       </span>
     </el-dialog>
 
-    <el-dialog :title="`子网 ${currentSubnet} 的连接状态`" v-if="topologyDialog" :visible.sync="topologyDialog" width="30%">
-      <el-transfer v-model="value" :data="data"></el-transfer>
+    <el-dialog :title="`子网 ${currentSubnet} 的连接状态`" v-if="topologyDialog" :visible.sync="topologyDialog" width="35%">
+      <el-row type="flex" justify="center">
+        <el-transfer v-model="tempTopology" :titles="['非连接子网', '连接子网']" :data="getAllSubnetKey"></el-transfer>
+      </el-row>
       <span slot="footer">
-        <el-button @click="topologyDialog = false">Cancel</el-button>
-        <el-button type="primary" @click="">OK</el-button>
+        <el-button @click="topologyDialog = false">取消</el-button>
+        <el-button type="primary" @click="topologyConfirmClick">确认</el-button>
       </span>
     </el-dialog>
 
@@ -97,13 +103,15 @@
 </template>
 
 <script>
-import { deepCopy } from '@/utils/other'
+import { deepCopy } from '@/utils/other';
+import * as echarts from 'echarts';
 
 export default {
   name: 'Visualization',
   components: {},
   data() {
     return {
+      chart: null,
       hostDialog: false,
       hostDialogType: 'add',
       topologyDialog: false,
@@ -128,7 +136,6 @@ export default {
         { prop: 'value', label: '主机值' },
         { prop: 'isSensitive', label: '敏感主机' },
         { prop: 'sensitiveVal', label: '敏感主机值' },
-        // { prop: 'firewall', label: '防火墙 (firewall)' },
       ],
       hostFormRules: {
         os: [
@@ -159,7 +166,62 @@ export default {
       processOptions: [
         { value: 'tomcat', label: 'tomcat' },
       ],
-      topology: {}
+      topology: {},
+      tempTopology: [],
+      option: {
+        title: {
+          text: '子网拓扑结构'
+        },
+        tooltip: {},
+        animationDurationUpdate: 1500,
+        animationEasingUpdate: 'quinticInOut',
+        series: {
+          type: 'graph',
+          layout: 'circular',
+          symbolSize: 50,
+          roam: true,
+          label: {
+            show: true
+          },
+          edgeSymbol: [],
+          edgeSymbolSize: [10, 10],
+          edgeLabel: {
+            fontSize: 20
+          },
+          data: [
+            {
+              name: '子网 1',
+              // x: 300,
+              // y: 300
+            },
+          ],
+          links: [
+            {
+              source: '子网 1',
+              target: '子网 3'
+            },
+          ],
+          lineStyle: {
+            opacity: 0.9,
+            width: 5,
+            curveness: 0
+          }
+        }
+      }
+    }
+  },
+  computed: {
+    getAllSubnetKey() {
+      let keys = Object.keys(this.subnets);
+      let result = []
+      keys.forEach((key) => {
+        result.push({
+          key,
+          label: `子网 ${key}`,
+          disabled: key == this.currentSubnet,
+        })
+      });
+      return result;
     }
   },
   watch: {
@@ -167,9 +229,25 @@ export default {
       if (!val) {
         this.$refs['hostForm'].resetFields();
       }
-    }
+    },
+    'option.series.data': function () {
+      this.chart.setOption(this.option);
+    },
+    'option.series.links': function () {
+      this.chart.setOption(this.option);
+    },
+  },
+  mounted() {
+    this.echartsInit()
   },
   methods: {
+    test() {
+      this.option.series.data.push({ name: `子网 ${Math.random()}` });
+    },
+    echartsInit() {
+      this.chart = echarts.init(document.getElementById('echarts-content'));
+      this.chart.setOption(this.option);
+    },
     addSubnetClick() {
       this.$set(this.subnets, `${this.maxSubnetId}`, { hosts: {}, total: 0 });
       this.$set(this.topology, `${this.maxSubnetId}`, [`${this.maxSubnetId}`]);
@@ -178,6 +256,17 @@ export default {
     deleteSubnetClick(key) {
       this.$delete(this.subnets, key)
       this.$delete(this.topology, key)
+      for (let item in this.topology) {
+        let index = this.topology[item].indexOf(key);
+        if (index != -1) {
+          this.topology[item].splice(index, 1);
+        }
+      }
+    },
+    openTopologyDialog(subnetKey) {
+      this.currentSubnet = subnetKey;
+      this.tempTopology = [...this.topology[subnetKey]];
+      this.topologyDialog = true;
     },
     openHostDialogClick(subnetKey, hostKey, type) {
       this.hostDialogType = type;
@@ -210,11 +299,20 @@ export default {
           return false;
         }
       })
-
     },
     deleteHostClick(subnetKey, hostKey) {
       let subnet = this.subnets[subnetKey];
       this.$delete(subnet.hosts, `${hostKey}`);
+    },
+    topologyConfirmClick() {
+      this.topology[this.currentSubnet] = [...this.tempTopology];
+      this.tempTopology.forEach((item) => {
+        if (this.topology[item].indexOf(this.currentSubnet) == -1) {
+          this.topology[item].push(this.currentSubnet);
+        }
+      });
+      this.topologyDialog = false;
+      this.tempTopology = [];
     }
   }
 }
@@ -260,5 +358,10 @@ export default {
   margin-bottom: 18px;
   display: flex;
   justify-content: space-between;
+}
+
+#echarts-content {
+  height: 100%;
+  width: 100%;
 }
 </style>

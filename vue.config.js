@@ -53,6 +53,9 @@ module.exports = {
       alias: {
         '@': resolve('src')
       }
+    },
+    externals: {
+      'echarts': 'echarts',
     }
   },
   chainWebpack(config) {
