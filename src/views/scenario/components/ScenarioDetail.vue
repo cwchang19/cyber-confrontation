@@ -2,7 +2,7 @@
   <div class="scenario-detail-container">
     <h1>{{ isEdit ? '修改场景' : '新增场景' }}</h1>
     <el-row :gutter="20" class="content-row">
-      <el-col :span="6" :offset="0" class="content-col">
+      <el-col :span="4" :offset="0" class="content-col">
         <el-card shadow="always" class="card" :body-style="{ padding: '20px', height: '100%' }">
           <div slot="header" class="clearfix">
             <span>场景细节</span>
@@ -30,7 +30,7 @@
           </el-form>
         </el-card>
       </el-col>
-      <el-col :span="18" :offset="0" class="content-col">
+      <el-col :span="20" :offset="0" class="content-col">
         <el-card shadow="always" :body-style="{ padding: '0px' }">
           <div slot="header">
             <span>可视化创建</span>
@@ -96,12 +96,12 @@ export default {
       },
       formItem: [
         { key: 'name', label: '场景名' },
-        { key: 'num_hosts', label: '主机数量' },
-        { key: 'num_services', label: '服务数量' },
-        { key: 'num_os', label: '系统数量' },
-        { key: 'num_processes', label: '进程数量' },
-        { key: 'num_exploits', label: '漏洞数量' },
-        { key: 'num_privescs', label: '权限升级操作数' },
+        { key: 'num_hosts', label: '主机数量', min: 3 },
+        { key: 'num_services', label: '服务数量', min: 1 },
+        { key: 'num_os', label: '系统数量', min: 1 },
+        { key: 'num_processes', label: '进程数量', min: 1 },
+        { key: 'num_exploits', label: '漏洞数量', min: 1 },
+        { key: 'num_privescs', label: '权限升级操作数', min: 1 },
         { key: 'r_sensitive', label: '敏感子网奖励' },
         { key: 'r_user', label: '用户子网奖励' },
         { key: 'exploit_cost', label: '攻击代价' },
@@ -113,16 +113,15 @@ export default {
         { key: 'subnet_scan_cost', label: '子网扫描代价' },
         { key: 'process_scan_cost', label: '进程扫描代价' },
         { key: 'uniform', label: '是使用统一分布' },
-        { key: 'alpha_H', label: '主机配置之间相关性的缩放浓度参数' },
-        { key: 'alpha_V', label: '控制跨主机配置的服务之间的关联' },
-        { key: 'lambda_V', label: '控制每个主机配置运行的平均服务数的参数' },
+        { key: 'alpha_H', label: '主机配置之间相关性的缩放浓度参数', min: 0 },
+        { key: 'alpha_V', label: '控制跨主机配置的服务之间的关联', min: 0 },
+        { key: 'lambda_V', label: '控制每个主机配置运行的平均服务数的参数', min: 0 },
         { key: 'restrictiveness', label: '允许通过区域间防火墙的最大服务数' },
         { key: 'random_goal', label: '是否随机分配目标用户主机' },
         { key: 'base_host_value', label: '非敏感主机的值' },
         { key: 'host_discovery_value', label: '首次发现主机价值' },
         { key: 'seed', label: '随机种子' },
         { key: 'step_limit', label: '最大步数' },
-
       ],
       scenarioFormRules: {
         name: [
