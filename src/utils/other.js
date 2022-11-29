@@ -141,6 +141,7 @@ export function parseScenarioJSON(obj) {
 }
 
 export function stringifyScenarioJSON(obj) {
+  console.log(obj);
   
   // 首先处理无需转换的属性
   let os_scan_cost = obj.os_scan_cost || 1;
@@ -162,15 +163,19 @@ export function stringifyScenarioJSON(obj) {
   let firewall = {};
 
   // 先处理只需简单转换的属性
-  obj.exploits.forEach((exploit, index) => {
-    let key = `e_${exploit.service}_${index}`;
-    exploits[key] = exploit;
-  });
+  if(obj.exploits) {
+    obj.exploits.forEach((exploit, index) => {
+      let key = `e_${exploit.service}_${index}`;
+      exploits[key] = exploit;
+    });
+  }
 
-  obj.privilege_escalation.forEach((pe, index) => {
-    let key = `pe_${pe.process}_${index}`;
-    privilege_escalation[key] = pe;
-  })
+  if(obj.privilege_escalation) {
+    obj.privilege_escalation.forEach((pe, index) => {
+      let key = `pe_${pe.process}_${index}`;
+      privilege_escalation[key] = pe;
+    })
+  }
 
   // 再处理需要复杂转换的属性
   // 先构建子网的 key 和其下标的映射表，同时构建子网中主机的 key 和下标的映射表
@@ -234,21 +239,32 @@ export function stringifyScenarioJSON(obj) {
 
   // 处理 topology
   topology = new Array(subnets.length+1);
+  topology[0] = new Array(subnets.length+1).fill(0);
+  topology[0][0] = 1;
   for(let currentSubnetKey in obj.topology) {
     let currentIndex = subnetMap.get(currentSubnetKey).index;
     topology[currentIndex] = new Array(subnets.length+1).fill(0);
     for(let targetSubnetKey of obj.topology[currentSubnetKey]) {
       let targetIndex = subnetMap.get(targetSubnetKey).index;
+      if(targetIndex == 0) {
+        topology[0][currentIndex] = 1;
+        firewall[`(0, ${currentIndex})`] = [];
+      }
       topology[currentIndex][targetIndex] = 1;
+      if(currentIndex != targetIndex) {
+        firewall[`(${currentIndex}, ${targetIndex})`] = [];
+      }
     }
   }
 
   // 处理 firewall
-  for(let item of obj.firewall) {
-    let firstSubnetIndex = subnetMap.get(item.first_subnet_num).index;
-    let secondSubnetIndex = subnetMap.get(item.second_subnet_num).index;
-    let key = `(${firstSubnetIndex}, ${secondSubnetIndex})`;
-    firewall[key] = item.types;
+  if(obj.firewall) {
+    for(let item of obj.firewall) {
+      let firstSubnetIndex = subnetMap.get(item.first_subnet_num).index;
+      let secondSubnetIndex = subnetMap.get(item.second_subnet_num).index;
+      let key = `(${firstSubnetIndex}, ${secondSubnetIndex})`;
+      firewall[key] = item.types;
+    }
   }
 
   return {
@@ -269,4 +285,26 @@ export function stringifyScenarioJSON(obj) {
     step_limit
   }
   
+}
+
+export function parseSubnets(obj) {
+  let data = [];
+  for(let subnetKey in obj) {
+    data.push({
+      name: `${subnetKey}`,
+      itemStyle: { color: '#91cc75' }
+    })
+  }
+  return data;
+}
+
+export function parseTopology(obj) {
+  let links = [];
+  for(let firstSubnetKey in obj) {
+    if(firstSubnetKey != '0') {
+      for(let secondSubnetKey of obj[firstSubnetKey]) {
+        
+      }
+    }
+  }
 }

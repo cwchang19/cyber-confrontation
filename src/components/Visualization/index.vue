@@ -1,67 +1,54 @@
 <template>
   <div class="visualization-container">
-    <h1>可视化</h1>
-    <el-row :gutter="20" class="content-row">
-      <el-col :span="4" class="content-col">
-        123
+    <el-row style="height: 100%;">
+      <el-col :span="12" style="height: 100%">
+        <el-row class="main-edit-container" :gutter="2">
+          <el-col class="main-edit-item subnet-item" v-for="(subnet, subnetKey) in subnets" :key="subnetKey" :span="12">
+            <el-card shadow="hover"
+              :body-style="{ padding: '20px', height: '75%', position: 'relative', overflowY: 'auto' }">
+              <div slot="header">
+                <span>{{ `子网 ${subnetKey}` }}</span>
+                <el-button v-if="!isTrain" style="float: right; padding: 0px 5px" type="text" plain
+                  @click="deleteSubnetClick(subnetKey)">删除</el-button>
+                <el-button v-if="!isTrain" style="float: right; padding: 0px 5px" type="text" plain
+                  @click="openTopologyDialog(subnetKey)">连接</el-button>
+              </div>
+              <div v-for="(host, hostKey) in subnet.hosts" :key="hostKey" class="host-item">
+                <span :style="'color:' + (host.isSensitive ? '#F56C6C' : '#67C23A')">
+                  {{ `${host.isSensitive ? '敏感' : ''}主机 ${hostKey}` }}
+                </span>
+                <div v-if="!isTrain">
+                  <el-button type="text" plain size="mini" icon="el-icon-edit" style="padding: 0;"
+                    @click="openHostDialogClick(subnetKey, hostKey, 'edit')"></el-button>
+                  <el-button type="text" plain size="mini" icon="el-icon-delete" style="padding: 0;"
+                    @click="deleteHostClick(subnetKey, hostKey)"></el-button>
+                </div>
+              </div>
+              <div v-if="!isTrain" class="host-item">
+                <el-button type="text" plain icon="el-icon-plus" size="small" style="width: 100%;"
+                  @click="openHostDialogClick(subnetKey, null, 'add')">添加主机</el-button>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col v-if="!isTrain" class="main-edit-item" :span="12" style="height: 30%">
+            <el-button type="primary" plain style="height: 100%; width: 100%; transform: scale(90%);"
+              @click="addSubnetClick">
+              <div style="font-size: 50px; padding: 10px;"><i class="el-icon-plus"></i></div>
+              <div style="">添加子网</div>
+            </el-button>
+          </el-col>
+        </el-row>
       </el-col>
-      <el-col :span="20" class="content-col">
-        <el-card shadow="always" :body-style="{ padding: '20px', height: '100%' }">
-          <el-row style="height: 100%;">
-            <el-col :span="12" style="height: 100%">
-              <el-row class="main-edit-container" :gutter="2">
-                <el-col class="main-edit-item subnet-item" v-for="(subnet, subnetKey) in subnets" :key="subnetKey"
-                  :span="12">
-                  <el-card shadow="hover"
-                    :body-style="{ padding: '20px', height: '75%', position: 'relative', overflowY: 'auto' }">
-                    <div slot="header">
-                      <span>{{ `子网 ${subnetKey}` }}</span>
-                      <el-button style="float: right; padding: 0px 5px" type="text" plain
-                        @click="deleteSubnetClick(subnetKey)">删除</el-button>
-                      <el-button style="float: right; padding: 0px 5px" type="text" plain
-                        @click="openTopologyDialog(subnetKey)">连接</el-button>
-                    </div>
-                    <div v-for="(host, hostKey) in subnet.hosts" :key="hostKey" class="host-item">
-                      <span :style="'color:' + (host.isSensitive ? '#F56C6C' : '#67C23A')">
-                        {{ `${host.isSensitive ? '敏感' : ''}主机 ${hostKey}` }}
-                      </span>
-                      <div>
-                        <el-button type="text" plain size="mini" icon="el-icon-edit" style="padding: 0;"
-                          @click="openHostDialogClick(subnetKey, hostKey, 'edit')"></el-button>
-                        <el-button type="text" plain size="mini" icon="el-icon-delete" style="padding: 0;"
-                          @click="deleteHostClick(subnetKey, hostKey)"></el-button>
-                      </div>
-                    </div>
-                    <div class="host-item">
-                      <el-button type="text" plain icon="el-icon-plus" size="small" style="width: 100%;"
-                        @click="openHostDialogClick(subnetKey, null, 'add')">添加主机</el-button>
-                    </div>
-                  </el-card>
-                </el-col>
-                <el-col class="main-edit-item" :span="12" style="height: 30%">
-                  <el-button type="primary" plain style="height: 100%; width: 100%; transform: scale(90%);"
-                    @click="addSubnetClick">
-                    <div style="font-size: 50px; padding: 10px;"><i class="el-icon-plus"></i></div>
-                    <div style="">添加子网</div>
-                  </el-button>
-                </el-col>
-              </el-row>
-            </el-col>
-            <el-col :span="12" style="height: 100%;">
-              <el-row style="height: 60%">
-                <div id="echarts-content"></div>
-              </el-row>
-              <el-row style="height: 40%; padding: 0px 5px">
-                <el-row style="height: 100%">
-                  <h3>其他参数</h3>
-                  
-                </el-row>
-              </el-row>
-            </el-col>
-          </el-row>
-        </el-card>
+      <el-col :span="12" style="height: 100%;">
+        <el-row style="height: 100%">
+          <div id="echarts-content"></div>
+        </el-row>
       </el-col>
     </el-row>
+
+    <div v-if="!isTrain" style="position: absolute; right: 0px; bottom: 0px">
+      <el-button type="primary" style="width: 100px; height: 50px" @click="saveScenarioClick">保存</el-button>
+    </div>
 
     <el-dialog :title="`子网 ${currentSubnet} 的主机`" v-if="hostDialog" :visible.sync="hostDialog" width="30%">
       <el-form :model="hostForm" ref="hostForm" :rules="hostFormRules" :inline="false" label-width="120px" size="small">
@@ -111,6 +98,20 @@ import * as echarts from 'echarts';
 export default {
   name: 'Visualization',
   components: {},
+  props: {
+    isTrain: {
+      type: Boolean,
+      default: false
+    },
+    recvSubnet: {
+      type: Object,
+      default: null,
+    },
+    recvTopology: {
+      type: Object,
+      default: null,
+    }
+  },
   data() {
     return {
       chart: null,
@@ -220,12 +221,12 @@ export default {
     }
   },
   watch: {
-    topologyDialog: function(val) {
-      if(!val) {
+    topologyDialog: function (val) {
+      if (!val) {
         this.tempTopology = [];
       }
     },
-    hostDialog: function(val) {
+    hostDialog: function (val) {
       if (!val) {
         this.$refs['hostForm'].resetFields();
       }
@@ -237,14 +238,23 @@ export default {
       this.chart.setOption(this.option);
     },
   },
+  created() {
+    this.fetchData();
+  },
   mounted() {
-    this.echartsInit()
+    this.echartsInit();
   },
   methods: {
+    fetchData() {
+      this.subnets = this.recvSubnet;
+      this.topology = this.recvTopology;
+    },
     echartsInit() {
-      this.chart = echarts.init(document.getElementById('echarts-content'));
-      window.addEventListener("resize", () => { this.chart.resize(); });
-      this.chart.setOption(this.option);
+      this.$nextTick(() => {
+        this.chart = echarts.init(document.getElementById('echarts-content'));
+        window.addEventListener("resize", () => { this.chart.resize(); });
+        this.chart.setOption(this.option);
+      });
     },
     addSubnetClick() {
       this.$set(this.subnets, `${this.maxSubnetId}`, { hosts: {}, total: 0 });
@@ -267,8 +277,8 @@ export default {
       }
       console.log(this.option.series.links);
       let newLinks = deepCopy(this.option.series.links);
-      for(let i=0; i<newLinks.length; i++) {
-        if(newLinks[i].source == `${key}` || newLinks[i].target == `${key}`) {
+      for (let i = 0; i < newLinks.length; i++) {
+        if (newLinks[i].source == `${key}` || newLinks[i].target == `${key}`) {
           newLinks.splice(i, 1);
           i--;
         }
@@ -320,17 +330,17 @@ export default {
     topologyConfirmClick() {
       // 在被选择连接的子网处同步添加当前子网
       this.tempTopology.forEach((item) => {
-        if(item != '0'){
+        if (item != '0') {
           if (this.topology[item].indexOf(this.currentSubnet) == -1) {
             this.topology[item].push(this.currentSubnet);
           }
         }
       });
       // 在非被选择连接的子网处同步删除当前子网
-      for(let item in this.topology) {
-        if(this.tempTopology.indexOf(item) == -1) {
+      for (let item in this.topology) {
+        if (this.tempTopology.indexOf(item) == -1) {
           let index = this.topology[item].indexOf(this.currentSubnet);
-          if(index != -1) {
+          if (index != -1) {
             this.topology[item].splice(index, 1);
           }
         }
@@ -341,16 +351,16 @@ export default {
       let newLinks = [];
       let curName = `${this.currentSubnet}`;
       // 比较旧边和新边，保留交集以及与当前子网无关的边，也就是移除所有要删除的边
-      for(let i=0; i<oldLinks.length; i++) {
-        if(oldLinks[i].source == curName) {
+      for (let i = 0; i < oldLinks.length; i++) {
+        if (oldLinks[i].source == curName) {
           let index = this.tempTopology.indexOf(oldLinks[i].target);
-          if(index != -1) {
+          if (index != -1) {
             newLinks.push(oldLinks[i]);
             this.tempTopology.splice(index, 1);
           }
-        } else if(oldLinks[i].target == curName) {
+        } else if (oldLinks[i].target == curName) {
           let index = this.tempTopology.indexOf(oldLinks[i].source);
-          if(index != -1) {
+          if (index != -1) {
             newLinks.push(oldLinks[i]);
             this.tempTopology.splice(index, 1);
           }
@@ -360,7 +370,7 @@ export default {
       }
       // 添加新边
       this.tempTopology.forEach((item) => {
-        if(item != '0') {
+        if (item != '0') {
           let [x, y] = item < this.currentSubnet ? [item, this.currentSubnet] : [this.currentSubnet, item];
           newLinks.push({
             source: x,
@@ -370,6 +380,9 @@ export default {
       })
       this.option.series.links = newLinks;
       this.topologyDialog = false;
+    },
+    saveScenarioClick() {
+      this.$emit('watchSaveClick', this.subnets, this.topology);
     }
   }
 }
@@ -377,23 +390,22 @@ export default {
 
 <style scoped>
 .visualization-container {
+  position: relative;
+  height: 100%;
   padding: 0 1rem 0 1rem;
 }
 
+/* 
 .content-row {
   height: 48rem;
 }
 
 .content-col {
   height: 100%;
-}
+} */
 
 .el-card {
   height: 100%;
-}
-
-.card {
-  overflow-y: auto;
 }
 
 .main-edit-container {
