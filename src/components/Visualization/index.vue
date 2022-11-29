@@ -51,9 +51,11 @@
               <el-row style="height: 60%">
                 <div id="echarts-content"></div>
               </el-row>
-              <el-row style="height: 40%">
-                <el-button type="primary" size="default" @click="test()">test
-                </el-button>
+              <el-row style="height: 40%; padding: 0px 5px">
+                <el-row style="height: 100%">
+                  <h3>其他参数</h3>
+                  
+                </el-row>
               </el-row>
             </el-col>
           </el-row>
@@ -115,7 +117,7 @@ export default {
       hostDialog: false,
       hostDialogType: 'add',
       topologyDialog: false,
-      maxSubnetId: 0,
+      maxSubnetId: 1,
       subnetNum: 0,
       subnets: {},
       currentSubnet: NaN,
@@ -183,24 +185,12 @@ export default {
           label: {
             show: true
           },
-          edgeSymbol: [],
           edgeSymbolSize: [10, 10],
           edgeLabel: {
             fontSize: 20
           },
-          data: [
-            {
-              name: '子网 1',
-              // x: 300,
-              // y: 300
-            },
-          ],
-          links: [
-            {
-              source: '子网 1',
-              target: '子网 3'
-            },
-          ],
+          data: [],
+          links: [],
           lineStyle: {
             opacity: 0.9,
             width: 5,
@@ -213,7 +203,12 @@ export default {
   computed: {
     getAllSubnetKey() {
       let keys = Object.keys(this.subnets);
-      let result = []
+      let result = [
+        {
+          key: '0',
+          label: '外网'
+        }
+      ];
       keys.forEach((key) => {
         result.push({
           key,
@@ -225,7 +220,12 @@ export default {
     }
   },
   watch: {
-    hostDialog: function (val) {
+    topologyDialog: function(val) {
+      if(!val) {
+        this.tempTopology = [];
+      }
+    },
+    hostDialog: function(val) {
       if (!val) {
         this.$refs['hostForm'].resetFields();
       }
@@ -241,27 +241,40 @@ export default {
     this.echartsInit()
   },
   methods: {
-    test() {
-      this.option.series.data.push({ name: `子网 ${Math.random()}` });
-    },
     echartsInit() {
       this.chart = echarts.init(document.getElementById('echarts-content'));
+      window.addEventListener("resize", () => { this.chart.resize(); });
       this.chart.setOption(this.option);
     },
     addSubnetClick() {
       this.$set(this.subnets, `${this.maxSubnetId}`, { hosts: {}, total: 0 });
       this.$set(this.topology, `${this.maxSubnetId}`, [`${this.maxSubnetId}`]);
+      this.option.series.data.push({ name: `${this.maxSubnetId}`, itemStyle: { color: '#91cc75' } });
       this.maxSubnetId++;
     },
     deleteSubnetClick(key) {
       this.$delete(this.subnets, key)
       this.$delete(this.topology, key)
+      let index = this.option.series.data.findIndex((curVal) => {
+        return curVal.name == `${key}`;
+      })
+      this.option.series.data.splice(index, 1);
       for (let item in this.topology) {
         let index = this.topology[item].indexOf(key);
         if (index != -1) {
           this.topology[item].splice(index, 1);
         }
       }
+      console.log(this.option.series.links);
+      let newLinks = deepCopy(this.option.series.links);
+      for(let i=0; i<newLinks.length; i++) {
+        if(newLinks[i].source == `${key}` || newLinks[i].target == `${key}`) {
+          newLinks.splice(i, 1);
+          i--;
+        }
+      }
+      this.option.series.links = newLinks;
+      console.log(this.option.series.links);
     },
     openTopologyDialog(subnetKey) {
       this.currentSubnet = subnetKey;
@@ -305,14 +318,58 @@ export default {
       this.$delete(subnet.hosts, `${hostKey}`);
     },
     topologyConfirmClick() {
-      this.topology[this.currentSubnet] = [...this.tempTopology];
+      // 在被选择连接的子网处同步添加当前子网
       this.tempTopology.forEach((item) => {
-        if (this.topology[item].indexOf(this.currentSubnet) == -1) {
-          this.topology[item].push(this.currentSubnet);
+        if(item != '0'){
+          if (this.topology[item].indexOf(this.currentSubnet) == -1) {
+            this.topology[item].push(this.currentSubnet);
+          }
         }
       });
+      // 在非被选择连接的子网处同步删除当前子网
+      for(let item in this.topology) {
+        if(this.tempTopology.indexOf(item) == -1) {
+          let index = this.topology[item].indexOf(this.currentSubnet);
+          if(index != -1) {
+            this.topology[item].splice(index, 1);
+          }
+        }
+      }
+      this.topology[this.currentSubnet] = [...this.tempTopology];
+      // 处理关系图
+      let oldLinks = this.option.series.links;
+      let newLinks = [];
+      let curName = `${this.currentSubnet}`;
+      // 比较旧边和新边，保留交集以及与当前子网无关的边，也就是移除所有要删除的边
+      for(let i=0; i<oldLinks.length; i++) {
+        if(oldLinks[i].source == curName) {
+          let index = this.tempTopology.indexOf(oldLinks[i].target);
+          if(index != -1) {
+            newLinks.push(oldLinks[i]);
+            this.tempTopology.splice(index, 1);
+          }
+        } else if(oldLinks[i].target == curName) {
+          let index = this.tempTopology.indexOf(oldLinks[i].source);
+          if(index != -1) {
+            newLinks.push(oldLinks[i]);
+            this.tempTopology.splice(index, 1);
+          }
+        } else {
+          newLinks.push(oldLinks[i]);
+        }
+      }
+      // 添加新边
+      this.tempTopology.forEach((item) => {
+        if(item != '0') {
+          let [x, y] = item < this.currentSubnet ? [item, this.currentSubnet] : [this.currentSubnet, item];
+          newLinks.push({
+            source: x,
+            target: y
+          })
+        }
+      })
+      this.option.series.links = newLinks;
       this.topologyDialog = false;
-      this.tempTopology = [];
     }
   }
 }
