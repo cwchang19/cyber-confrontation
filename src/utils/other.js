@@ -62,7 +62,11 @@ export function parseScenarioJSON(obj) {
     subnets[i] = { hosts: {}, total: obj.subnets[i-1] };
     for(let j=0; j<obj.subnets[i-1]; j++) {
       let hostKey = '(' + i + ', ' + j + ')';
-      subnets[i].hosts[j] = obj.host_configurations[hostKey];
+      subnets[i].hosts[j] = {};
+      subnets[i].hosts[j]['os'] = Object.keys(obj.host_configurations[hostKey].os)[0];
+      subnets[i].hosts[j]['processes'] = Object.keys(obj.host_configurations[hostKey].processes);
+      subnets[i].hosts[j]['services'] = Object.keys(obj.host_configurations[hostKey].services);
+      subnets[i].hosts[j]['value'] = obj.host_configurations[hostKey].value || 0;
       if(subnets[i].hosts[j].firewall) {
         let newFirewall = [];
         for(let key in subnets[i].hosts[j].firewall) {
@@ -125,8 +129,12 @@ export function parseScenarioJSON(obj) {
   let subnet_scan_cost = obj.subnet_scan_cost || 0;
   let process_scan_cost = obj.process_scan_cost || 0;
   let step_limit = obj.step_limit || 0;
+  let name = obj.name;
+  let id = obj.id;
 
   return {
+    id,
+    name,
     subnets,
     topology,
     firewall,
@@ -141,7 +149,6 @@ export function parseScenarioJSON(obj) {
 }
 
 export function stringifyScenarioJSON(obj) {
-  console.log(obj);
   
   // 首先处理无需转换的属性
   let os_scan_cost = obj.os_scan_cost || 1;
@@ -205,16 +212,16 @@ export function stringifyScenarioJSON(obj) {
       let key = `(${tempSubnet.index}, ${tempHost.index})`;
       let host = obj.subnets[subnetKey].hosts[hostKey];
       // 如果主机设置了 firewall ，则需要进行处理
-      if(host.firewall) {
-        let hostFirewall = {};
-        for(let hFirewall of host.firewall) {
-          // 需要获取目标子网和目标主机的映射
-          let tempTargetSubnet = subnetMap.get(hFirewall.subnet_num);
-          let hFirewallKey = `(${tempTargetSubnet.index}, ${tempTargetSubnet.hostMap.get(hFirewall.host_num).index})`;
-          hostFirewall[hFirewallKey] = hFirewall.types;
-        }
-        host.firewall = hostFirewall;
-      }
+      // if(host.firewall) {
+      //   let hostFirewall = {};
+      //   for(let hFirewall of host.firewall) {
+      //     // 需要获取目标子网和目标主机的映射
+      //     let tempTargetSubnet = subnetMap.get(hFirewall.subnet_num);
+      //     let hFirewallKey = `(${tempTargetSubnet.index}, ${tempTargetSubnet.hostMap.get(hFirewall.host_num).index})`;
+      //     hostFirewall[hFirewallKey] = hFirewall.types;
+      //   }
+      //   host.firewall = hostFirewall;
+      // }
       // 如果是敏感主机，添加到 sensitive_hosts 中，并且移除 isSensitive 和 sensitiveVal 属性
       if(host.isSensitive) {
         let sensitiveKey = `(${tempSubnet.index}, ${tempHost.index})`;
@@ -258,14 +265,14 @@ export function stringifyScenarioJSON(obj) {
   }
 
   // 处理 firewall
-  if(obj.firewall) {
-    for(let item of obj.firewall) {
-      let firstSubnetIndex = subnetMap.get(item.first_subnet_num).index;
-      let secondSubnetIndex = subnetMap.get(item.second_subnet_num).index;
-      let key = `(${firstSubnetIndex}, ${secondSubnetIndex})`;
-      firewall[key] = item.types;
-    }
-  }
+  // if(obj.firewall) {
+  //   for(let item of obj.firewall) {
+  //     let firstSubnetIndex = subnetMap.get(item.first_subnet_num).index;
+  //     let secondSubnetIndex = subnetMap.get(item.second_subnet_num).index;
+  //     let key = `(${firstSubnetIndex}, ${secondSubnetIndex})`;
+  //     firewall[key] = item.types;
+  //   }
+  // }
 
   return {
     subnets,
@@ -301,10 +308,15 @@ export function parseSubnets(obj) {
 export function parseTopology(obj) {
   let links = [];
   for(let firstSubnetKey in obj) {
-    if(firstSubnetKey != '0') {
-      for(let secondSubnetKey of obj[firstSubnetKey]) {
-        
+    let key1 = parseInt(firstSubnetKey);
+    for(let secondSubnetKey of obj[firstSubnetKey]) {
+      if(parseInt(secondSubnetKey) > key1) {
+        links.push({
+          source: firstSubnetKey,
+          target: secondSubnetKey
+        })
       }
     }
   }
+  return links;
 }

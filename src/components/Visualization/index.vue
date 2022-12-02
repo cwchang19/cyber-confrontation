@@ -3,7 +3,7 @@
     <el-row style="height: 100%;">
       <el-col :span="12" style="height: 100%">
         <el-row class="main-edit-container" :gutter="2">
-          <el-col class="main-edit-item subnet-item" v-for="(subnet, subnetKey) in subnets" :key="subnetKey" :span="12">
+          <el-col class="main-edit-item subnet-item" v-for="(subnet, subnetKey) in subnets" :key="subnetKey" :span="8">
             <el-card shadow="hover"
               :body-style="{ padding: '20px', height: '75%', position: 'relative', overflowY: 'auto' }">
               <div slot="header">
@@ -30,7 +30,7 @@
               </div>
             </el-card>
           </el-col>
-          <el-col v-if="!isTrain" class="main-edit-item" :span="12" style="height: 30%">
+          <el-col v-if="!isTrain" class="main-edit-item" :span="8" style="height: 30%">
             <el-button type="primary" plain style="height: 100%; width: 100%; transform: scale(90%);"
               @click="addSubnetClick">
               <div style="font-size: 50px; padding: 10px;"><i class="el-icon-plus"></i></div>
@@ -92,7 +92,7 @@
 </template>
 
 <script>
-import { deepCopy } from '@/utils/other';
+import { deepCopy, parseSubnets, parseTopology } from '@/utils/other';
 import * as echarts from 'echarts';
 
 export default {
@@ -232,10 +232,14 @@ export default {
       }
     },
     'option.series.data': function () {
-      this.chart.setOption(this.option);
+      if(this.chart){
+        this.chart.setOption(this.option);
+      }
     },
     'option.series.links': function () {
-      this.chart.setOption(this.option);
+      if(this.chart){
+        this.chart.setOption(this.option);
+      }
     },
   },
   created() {
@@ -247,7 +251,10 @@ export default {
   methods: {
     fetchData() {
       this.subnets = this.recvSubnet;
+      this.maxSubnetId = Object.keys(this.subnets).length + 1;
       this.topology = this.recvTopology;
+      this.option.series.data = parseSubnets(this.subnets);
+      this.option.series.links = parseTopology(this.topology);
     },
     echartsInit() {
       this.$nextTick(() => {
@@ -275,7 +282,6 @@ export default {
           this.topology[item].splice(index, 1);
         }
       }
-      console.log(this.option.series.links);
       let newLinks = deepCopy(this.option.series.links);
       for (let i = 0; i < newLinks.length; i++) {
         if (newLinks[i].source == `${key}` || newLinks[i].target == `${key}`) {
@@ -284,7 +290,6 @@ export default {
         }
       }
       this.option.series.links = newLinks;
-      console.log(this.option.series.links);
     },
     openTopologyDialog(subnetKey) {
       this.currentSubnet = subnetKey;

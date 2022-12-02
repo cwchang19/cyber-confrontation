@@ -2,7 +2,7 @@
   <div class="scenario-detail-container">
     <el-row :gutter="20" class="content-row">
       <el-col :span="4" :offset="0" class="content-col">
-        <el-card shadow="always" class="card" :body-style="{ padding: '20px', height: '100%' }">
+        <el-card shadow="always" class="card" :body-style="{ padding: '20px' }">
           <div slot="header" class="clearfix">
             <span>场景细节</span>
           </div>
@@ -12,16 +12,9 @@
               <el-form-item v-if="item.key == 'name'" :label="item.label" :prop="item.key">
                 <el-input v-model="scenarioForm[item.key]" :placeholder="'请输入' + item.label" clearable></el-input>
               </el-form-item>
-              <el-form-item v-else-if="item.key == 'uniform' || item.key == 'random_goal'" :label="item.label"
-                :prop="item.key">
-                <el-radio-group v-model="scenarioForm[item.key]">
-                  <el-radio :label="false">否</el-radio>
-                  <el-radio :label="true">是</el-radio>
-                </el-radio-group>
-              </el-form-item>
               <el-form-item v-else :label="item.label" :prop="item.key">
-                <el-input :label="item.label" v-model.number="scenarioForm[item.key]">
-                </el-input>
+                <el-input-number v-model="scenarioForm[item.key]" label="item.label" :min="1" style="width: 100%;">
+                </el-input-number>
               </el-form-item>
             </template>
           </el-form>
@@ -41,7 +34,6 @@ import Visualization from '@/components/Visualization/index'
 import { searchScenarioById, addScenario, alterScenario } from '@/api/scenario'
 import { deepCopy, parseScenarioJSON, stringifyScenarioJSON } from '@/utils/other';
 
-import ExampleJSON from '@/assets/json/example.json'
 
 export default {
   name: 'ScenarioDetail',
@@ -56,7 +48,6 @@ export default {
   },
   data() {
     return {
-      jsonData: '',
       tempRoute: {},
       scenario_id: '',
       directory_id: '',
@@ -94,21 +85,31 @@ export default {
       // 根据 id 请求场景信息
       this.fetchData();
     } else {
-      this.jsonData = JSON.stringify(ExampleJSON, null, 2);
       this.scenarioForm.directory_id = this.$route.params && this.$route.params.did;
       this.scenarioForm.directory_id = parseInt(this.scenarioForm.directory_id.substring(8));
+      this.visualizationReady = true;
+
+    }
+    this.tempRoute = Object.assign({}, this.$route);
+  },
+  activated() {
+    if (this.isEdit) {
+      [this.scenario_id, this.directory_id] = (this.$route.params && this.$route.params.str).split('.');
+      // console.log(this.scenario_id, this.directory_id);
+      // 根据 id 请求场景信息
+      this.fetchData();
+    } else {
+      this.scenarioForm.directory_id = this.$route.params && this.$route.params.did;
+      this.scenarioForm.directory_id = parseInt(this.scenarioForm.directory_id.substring(8));
+      this.visualizationReady = true;
     }
     this.tempRoute = Object.assign({}, this.$route);
   },
   methods: {
     async fetchData() {
       const response = await searchScenarioById(this.scenario_id);
-      this.scenarioForm = Object.assign(this.scenarioForm, response.data);
-      const data = deepCopy(response.data);
-      Reflect.deleteProperty(data, 'name');
-      Reflect.deleteProperty(data, 'id');
-      this.jsonData = JSON.stringify(data, null, 2);
       const res = parseScenarioJSON(response.data);
+      this.scenarioForm = Object.assign(this.scenarioForm, res);
       this.subnets = res.subnets;
       this.topology = res.topology;
       this.visualizationReady = true;
@@ -117,21 +118,20 @@ export default {
       this.$refs['scenarioForm'].validate(async (valid) => {
         if (valid) {
           if (this.isEdit) {
-            console.log(this.directory_id)
+            const data = stringifyScenarioJSON(Object.assign(this.scenarioForm, {subnets, topology}));
             const params = {
               name: this.scenarioForm.name,
               directory_id: parseInt(this.directory_id),
             }
-            let response = await alterScenario(parseInt(this.scenario_id), params, JSON.parse(this.jsonData));
+            const response = await alterScenario(parseInt(this.scenario_id), params, data);
             // console.log(response);
           } else {
-            const res = stringifyScenarioJSON(Object.assign(this.scenarioForm, {subnets, topology}));
-            console.log(res);
+            const data = stringifyScenarioJSON(Object.assign(this.scenarioForm, {subnets, topology}));
             const params = {
               name: this.scenarioForm.name,
               directory_id: this.scenarioForm.directory_id
             }
-            const response = await addScenario(params, res);
+            const response = await addScenario(params, data);
           }
           this.$store.dispatch("tagsView/delView", this.$route);
           this.$router.push("/scenario/index");

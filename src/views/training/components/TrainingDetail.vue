@@ -25,10 +25,6 @@
                     clearable filterable :show-all-levels="false" :disabled="isfromScenario" @change="" style="width: 100%">
                   </el-cascader> -->
                 </el-form-item>
-                <el-form-item label="初始节点" size="normal" prop="startNode_id">
-                  <el-input v-model="trainingForm.startNode_id" placeholder="请在右侧可视化界面选择" size="normal" disabled>
-                  </el-input>
-                </el-form-item>
                 <el-form-item label="配置动作空间" size="normal" prop="isActionConfigSet">
                   <el-button :type="getActionConfigButtonType" size="default" icon="el-icon-edit" plain
                     @click="openActionDialog" style="width: 100%">
@@ -114,13 +110,8 @@
         </el-card>
       </el-col>
       <el-col :span="18" :offset="0" class="content-col">
-        <el-card shadow="always" :body-style="{ padding: '0px' }">
-          <div slot="header">
-            <span>可视化</span>
-          </div>
-          <el-button type="primary" size="default" @click="selectStartNodeClick">
-            选择初始节点
-          </el-button>
+        <el-card shadow="always" :body-style="{ padding: '20px', height: '100%' }" v-loading="!visualizationReady">
+          <Visualization v-if="visualizationReady" :is-train="true" :recv-subnet="subnets" :recv-topology="topology"></Visualization>
         </el-card>
       </el-col>
     </el-row>
@@ -190,17 +181,25 @@
 </template>
 
 <script>
-import { searchScenarioAll } from '@/api/scenario'
+import Visualization from '@/components/Visualization';
+
+import { searchScenarioAll, searchScenarioById } from '@/api/scenario';
 import { searchAlgorithmAll } from '@/api/algorithm';
 import { searchDirectory } from '@/api/directory';
 import { addTraining } from '@/api/training'
 
-import { arrayToTree, deepCopy } from '@/utils/other'
+import { arrayToTree, deepCopy, parseScenarioJSON } from '@/utils/other'
 
 export default {
   name: 'TrainingDetail',
+  components: {
+    Visualization,
+  },
   data() {
     return {
+      visualizationReady: false,
+      subnets: {},
+      topology: {},
       isfromScenario: false,
       active: 0,
       actionDialogVisible: false,
@@ -268,9 +267,6 @@ export default {
         scenario_id: [
           { required: true, message: '请选择场景', trigger: 'change' },
         ],
-        startNode_id: [
-          { required: true, message: '请选择初始节点', trigger: 'change' },
-        ],
         algorithm_id: [
           { required: true, message: '请选择算法', trigger: 'change' },
         ],
@@ -327,7 +323,7 @@ export default {
     if (str[0] != '') {
       this.isfromScenario = true;
     }
-    this.trainingForm.scenario_id = parseInt(str[0]);
+    this.trainingForm.scenario_id = parseInt(str[0]) || '';
 
     this.fetchScnData();
     this.fetchAlgData();
@@ -352,6 +348,18 @@ export default {
           return 'success';
         default:
           return 'primary';
+      }
+    }
+  },
+  watch: {
+    'trainingForm.scenario_id': async function(val) {
+      if(val){
+        this.visualizationReady = false;
+        const response = await searchScenarioById(val);
+        const res = parseScenarioJSON(response.data);
+        this.subnets = res.subnets;
+        this.topology = res.topology;
+        this.visualizationReady = true;
       }
     }
   },
