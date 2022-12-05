@@ -302,6 +302,7 @@ export default {
       this.currentHost = hostKey;
       this.hostDialog = true;
       if (type == 'edit') {
+        console.log(this.subnets[subnetKey].hosts[hostKey]);
         let host = this.subnets[subnetKey].hosts[hostKey];
         this.$nextTick(() => {
           this.hostForm = deepCopy(host);
@@ -387,7 +388,7 @@ export default {
       this.topologyDialog = false;
     },
     saveScenarioClick() {
-      this.$emit('watchSaveClick', this.subnets, this.topology);
+      this.$emit('watchSaveClick', deepCopy(this.subnets), deepCopy(this.topology));
     }
   }
 }

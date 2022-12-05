@@ -20,7 +20,7 @@
             </el-popover>
           </div>
           <el-row>
-            <el-tree :data="dirData" :props="treeProps" node-key="id" @node-click="handleNodeClick">
+            <el-tree :data="dirData" :props="treeProps" node-key="id" :highlight-current="true" @node-click="handleNodeClick">
               <span class="custom-tree-node" slot-scope="{ node, data }">
                 <span>{{ node.label }}</span>
                 <span>
@@ -40,19 +40,21 @@
         </el-card>
       </el-col>
       <el-col :span="20">
-        <el-card :body-style="{ padding: '20px' }" v-loading="loading || selectedDirId == ''">
+        <el-card :body-style="{ padding: '20px' }" v-loading="loading">
           <el-row :gutter="20" type="flex" justify="space-between" style="padding: .625rem; padding-top: 0rem;">
             <div class="search-tool">
             </div>
-            <router-link :to="selectedDirId == '' ? $route.fullPath : ('/scenario/add/' + randomStr + selectedDirId)">
-              <el-button type="success" size="small" :disabled="selectedDirId == ''"
-                @click="randomStr = getRamdomStr()">
-                在当前文件夹下新增场景
-              </el-button>
-            </router-link>
+            <el-tooltip content="请先在左侧选择目录" placement="top" effect="dark" :disabled="selectedDirId != ''">
+              <router-link :to="selectedDirId == '' ? $route.fullPath : ('/scenario/add/' + randomStr + selectedDirId)">
+                <el-button type="success" size="small" :disabled="selectedDirId == ''"
+                  @click="randomStr = getRamdomStr()">
+                  在选择文件夹下新增场景
+                </el-button>
+              </router-link>
+            </el-tooltip>
           </el-row>
           <el-row :gutter="20">
-            <el-table :data="tableData" style="width: 100%">
+            <el-table :data="tableData" empty-text="未选择目录或当前目录下无数据" style="width: 100%">
               <el-table-column fixed prop="id" label="序号" width="100">
               </el-table-column>
               <el-table-column fixed prop="scenario_name" label="场景名">
@@ -135,7 +137,7 @@ import { arrayToTree, deepCopy } from '@/utils/other'
 export default {
   data() {
     return {
-      loading: true,
+      loading: false,
       pageSize: 10,
       page: 1,
       tempPage: 1,
@@ -197,6 +199,7 @@ export default {
       this.dirData = arrayToTree(response.data);
     },
     async fetchTableData() {
+      if(this.selectedDirId == '') return;
       this.loading = true;
       const params = { directory_id: this.selectedDirId, pageSize: this.pageSize, page: this.page };
       let response = await searchScenario(params);

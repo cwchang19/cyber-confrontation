@@ -382,7 +382,7 @@ export default {
     nextStep() {
       if (this.active === 0) {
         let stepOneValid = true;
-        let stepOneField = ['scenario_id', 'startNode_id', 'algorithm_id']
+        let stepOneField = ['scenario_id', 'algorithm_id']
         Promise.all(
           stepOneField.map((field) => {
             return new Promise((resolve, reject) => {

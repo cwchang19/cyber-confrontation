@@ -20,7 +20,7 @@
             </el-popover>
           </div>
           <el-row>
-            <el-tree :data="dirData" :props="treeProps" node-key="id" @node-click="handleNodeClick"
+            <el-tree :data="dirData" :props="treeProps" node-key="id" :highlight-current="true" @node-click="handleNodeClick"
               :expand-on-click-node="false">
               <span class="custom-tree-node" slot-scope="{ node, data }">
                 <span>{{ node.label }}</span>
@@ -45,16 +45,18 @@
           <el-row :gutter="20" type="flex" justify="space-between" style="padding: .625rem; padding-top: 0rem;">
             <div class="search-tool">
             </div>
-            <router-link
-              :to="selectedDirId == '' ? $route.fullPath : ('/training/add/.' + selectedDirId + '.' + randomStr)">
-              <el-button type="success" size="small" :disabled="selectedDirId == ''"
-                @click="randomStr = getRandomStr()">
-                在当前文件夹下新增训练
-              </el-button>
-            </router-link>
+            <el-tooltip content="请先在左侧选择目录" placement="top" effect="dark" :disabled="selectedDirId != ''">
+              <router-link
+                :to="selectedDirId == '' ? $route.fullPath : ('/training/add/.' + selectedDirId + '.' + randomStr)">
+                <el-button type="success" size="small" :disabled="selectedDirId == ''"
+                  @click="randomStr = getRandomStr()">
+                  在选择目录下新增训练
+                </el-button>
+              </router-link>
+            </el-tooltip>
           </el-row>
           <el-row :gutter="20">
-            <el-table :data="tableData" style="width: 100%">
+            <el-table :data="tableData" empty-text="未选择目录或当前目录下无数据" style="width: 100%">
               <el-table-column fixed prop="id" label="序号">
               </el-table-column>
               <el-table-column prop="training_name" label="训练名">
@@ -83,8 +85,10 @@
                   <el-button type="info" size="small"
                     @click="deleteTrnDialogVisible = true; selectedTrnId = scope.row.id">
                     删除</el-button>
-                  <el-button v-if="scope.row.training_state === '已完成'" type="warning" size="small" @click="downloadClick(scope.row, 'training_result')">查看结果</el-button>
-                  <el-button v-if="scope.row.training_state === '运行异常'" type="warning" size="small" @click="downloadClick(scope.row, 'training_log')">报错信息</el-button>
+                  <el-button v-if="scope.row.training_state === '已完成'" type="warning" size="small"
+                    @click="downloadClick(scope.row, 'training_result')">查看结果</el-button>
+                  <el-button v-if="scope.row.training_state === '运行异常'" type="warning" size="small"
+                    @click="downloadClick(scope.row, 'training_log')">报错信息</el-button>
                   <el-button v-if="scope.row.training_state === '已完成' || scope.row.training_state === '运行异常'" type=""
                     size="small" @click="restartClick(scope.row.id)">重新训练</el-button>
                 </template>
@@ -150,7 +154,7 @@ import { continueStatement } from '@babel/types'
 export default {
   data() {
     return {
-      loading: true,
+      loading: false,
       pageSize: 10,
       page: 1,
       tempPage: 1,
@@ -208,6 +212,7 @@ export default {
       this.dirData = arrayToTree(response.data);
     },
     async fetchTableData() {
+      if(this.selectedDirId == '') return;
       this.loading = true;
       const params = { directory_id: this.selectedDirId, pageSize: this.pageSize, page: this.page };
       let response = await searchTraining(params);
@@ -281,9 +286,11 @@ export default {
       this.fetchDirData();
     },
     async downloadClick(row, type) {
+      console.log(row);
       const params = {
         // file_path: row.training_path + row[type],
-        file_path: row.training_path + row[type],
+        // file_path: row.training_path + row[type],
+        file_path: `${row.training_path}${type=='training_result'?'result':'logs'}/${row[type]}`
       };
       // console.log(params);
       const response = await downloadTraining(params);
@@ -298,7 +305,6 @@ export default {
       elink.click();
       URL.revokeObjectURL(elink.href);
       document.body.removeChild(elink);
-      // console.log(response);
     },
     async pauseClick(id) {
       const response = await pauseTraining(id);

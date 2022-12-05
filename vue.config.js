@@ -33,7 +33,8 @@ module.exports = {
     port: port,
     proxy: {
       '/api': {
-        target: 'http://101.43.40.128',
+        // target: 'http://101.43.40.128',
+        target: 'http://10.200.152.9:8088',
         changeOrigin: true,
         ws: true,
       }

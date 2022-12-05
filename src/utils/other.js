@@ -212,16 +212,16 @@ export function stringifyScenarioJSON(obj) {
       let key = `(${tempSubnet.index}, ${tempHost.index})`;
       let host = obj.subnets[subnetKey].hosts[hostKey];
       // 如果主机设置了 firewall ，则需要进行处理
-      // if(host.firewall) {
-      //   let hostFirewall = {};
-      //   for(let hFirewall of host.firewall) {
-      //     // 需要获取目标子网和目标主机的映射
-      //     let tempTargetSubnet = subnetMap.get(hFirewall.subnet_num);
-      //     let hFirewallKey = `(${tempTargetSubnet.index}, ${tempTargetSubnet.hostMap.get(hFirewall.host_num).index})`;
-      //     hostFirewall[hFirewallKey] = hFirewall.types;
-      //   }
-      //   host.firewall = hostFirewall;
-      // }
+      if(host.firewall) {
+        let hostFirewall = {};
+        // for(let hFirewall of host.firewall) {
+        //   // 需要获取目标子网和目标主机的映射
+        //   let tempTargetSubnet = subnetMap.get(hFirewall.subnet_num);
+        //   let hFirewallKey = `(${tempTargetSubnet.index}, ${tempTargetSubnet.hostMap.get(hFirewall.host_num).index})`;
+        //   hostFirewall[hFirewallKey] = hFirewall.types;
+        // }
+        host.firewall = hostFirewall;
+      }
       // 如果是敏感主机，添加到 sensitive_hosts 中，并且移除 isSensitive 和 sensitiveVal 属性
       if(host.isSensitive) {
         let sensitiveKey = `(${tempSubnet.index}, ${tempHost.index})`;
@@ -255,11 +255,11 @@ export function stringifyScenarioJSON(obj) {
       let targetIndex = subnetMap.get(targetSubnetKey).index;
       if(targetIndex == 0) {
         topology[0][currentIndex] = 1;
-        firewall[`(0, ${currentIndex})`] = [];
+        firewall[`(0, ${currentIndex})`] = ['ssh'];
       }
       topology[currentIndex][targetIndex] = 1;
       if(currentIndex != targetIndex) {
-        firewall[`(${currentIndex}, ${targetIndex})`] = [];
+        firewall[`(${currentIndex}, ${targetIndex})`] = ['ssh'];
       }
     }
   }
