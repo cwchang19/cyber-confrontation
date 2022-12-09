@@ -54,20 +54,24 @@
               </div>
               <div class="card-content-step1" v-show="active === 1">
                 <el-form-item label="Seed" size="normal" prop="seed">
-                  <el-input v-model.number="trainingForm.seed" placeholder="请输入种子 seed" size="normal">
-                  </el-input>
+                  <el-input-number v-model="trainingForm.seed" :min="0"></el-input-number>
+                  <!-- <el-input v-model.number="trainingForm.seed" placeholder="请输入种子 seed" size="normal">
+                  </el-input> -->
                 </el-form-item>
                 <el-form-item label="Learning Rate" size="normal" prop="learningRate">
-                  <el-input v-model.number="trainingForm.learningRate" placeholder="请输入学习率 learning rate" size="normal">
-                  </el-input>
+                  <el-input-number v-model="trainingForm.learningRate" :precision="3" :step="0.01" :min="0.001"></el-input-number>
+                  <!-- <el-input v-model.number="trainingForm.learningRate" placeholder="请输入学习率 learning rate" size="normal">
+                  </el-input> -->
                 </el-form-item>
                 <el-form-item label="Batch Size" size="normal" prop="batchSize">
-                  <el-input v-model.number="trainingForm.batchSize" placeholder="请输入批大小 batch size" size="normal">
-                  </el-input>
+                  <el-input-number v-model="trainingForm.batchSize" :min="1"></el-input-number>
+                  <!-- <el-input v-model.number="trainingForm.batchSize" placeholder="请输入批大小 batch size" size="normal">
+                  </el-input> -->
                 </el-form-item>
                 <el-form-item label="Training Steps" size="normal" prop="trainingSteps">
-                  <el-input v-model.number="trainingForm.trainingSteps" placeholder="请输入跨步 training steps" size="normal">
-                  </el-input>
+                  <el-input-number v-model="trainingForm.trainingSteps" :min="1"></el-input-number>
+                  <!-- <el-input v-model.number="trainingForm.trainingSteps" placeholder="请输入跨步 training steps" size="normal">
+                  </el-input> -->
                 </el-form-item>
                 <el-form-item label="网络和节点可视化类型" size="normal">
                   <el-radio-group v-model="trainingForm.visualizationType">
@@ -215,10 +219,10 @@ export default {
         action_id_list: [0],
         startNode_id: '',
         directory_parent: '',
-        seed: '',
-        learningRate: '',
-        batchSize: '',
-        trainingSteps: '',
+        seed: 0,
+        learningRate: 0.001,
+        batchSize: 1,
+        trainingSteps: 100,
         trainingNodeConfigType: 0,
         visualizationType: 0,
         isActionConfigSet: null,
@@ -490,7 +494,6 @@ export default {
 }
 
 .el-card__body {
-  height: 100%;
   position: relative;
   box-sizing: border-box;
 }

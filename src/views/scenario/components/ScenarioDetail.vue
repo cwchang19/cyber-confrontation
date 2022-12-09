@@ -32,7 +32,7 @@
 <script>
 import Visualization from '@/components/Visualization/index'
 import { searchScenarioById, addScenario, alterScenario } from '@/api/scenario'
-import { deepCopy, parseScenarioJSON, stringifyScenarioJSON } from '@/utils/other';
+import { parseScenarioJSON, stringifyScenarioJSON } from '@/utils/other';
 
 
 export default {

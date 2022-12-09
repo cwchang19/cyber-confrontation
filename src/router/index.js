@@ -155,24 +155,24 @@ export const constantRoutes = [
     ]
 
   },
-  {
-    path: '/visualization',
-    component: Layout,
-    redirect: '/visualization/index',
-    name: 'Visualization',
-    meta: {
-      title: '可视化',
-      icon: 'dashboard'
-    },
-    children: [
-      {
-        path: 'index',
-        component: () => import('@/components/Visualization/index'),
-        name: 'VisualizationIndex',
-        meta: { title: '可视化', icon: 'dashboard' }
-      }
-    ]
-  },
+  // {
+  //   path: '/visualization',
+  //   component: Layout,
+  //   redirect: '/visualization/index',
+  //   name: 'Visualization',
+  //   meta: {
+  //     title: '可视化',
+  //     icon: 'dashboard'
+  //   },
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       component: () => import('@/components/Visualization/index'),
+  //       name: 'VisualizationIndex',
+  //       meta: { title: '可视化', icon: 'dashboard' }
+  //     }
+  //   ]
+  // },
 
   // {
   //   path: '/',

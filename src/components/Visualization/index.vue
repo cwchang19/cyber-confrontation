@@ -130,7 +130,7 @@ export default {
         firewall: [],
         value: 0,
         isSensitive: false,
-        sensitiveVal: 0,
+        sensitiveVal: 0.01,
       },
       hostFormItem: [
         { prop: 'os', label: '操作系统', multiple: false },
@@ -311,7 +311,7 @@ export default {
     },
     isSensitiveChange(value) {
       if (!value) {
-        this.hostForm.sensitiveVal = 0;
+        this.hostForm.sensitiveVal = 0.01;
       }
     },
     hostClick(type) {
