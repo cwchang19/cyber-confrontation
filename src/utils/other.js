@@ -67,6 +67,8 @@ export function parseScenarioJSON(obj) {
       subnets[i].hosts[j]['processes'] = Object.keys(obj.host_configurations[hostKey].processes);
       subnets[i].hosts[j]['services'] = Object.keys(obj.host_configurations[hostKey].services);
       subnets[i].hosts[j]['value'] = obj.host_configurations[hostKey].value || 0;
+      subnets[i].hosts[j]['isSensitive'] = false;
+      subnets[i].hosts[j]['sensitiveVal'] = 0.01;
       if(subnets[i].hosts[j].firewall) {
         let newFirewall = [];
         for(let key in subnets[i].hosts[j].firewall) {

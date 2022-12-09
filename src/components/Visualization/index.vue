@@ -301,6 +301,9 @@ export default {
       this.currentSubnet = subnetKey;
       this.currentHost = hostKey;
       this.hostDialog = true;
+      this.$nextTick(() => {
+        this.$refs['hostForm'].clearValidate();
+      });
       if (type == 'edit') {
         console.log(this.subnets[subnetKey].hosts[hostKey]);
         let host = this.subnets[subnetKey].hosts[hostKey];
