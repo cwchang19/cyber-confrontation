@@ -51,9 +51,16 @@
     </div>
 
     <el-dialog :title="`子网 ${currentSubnet} 的主机`" v-if="hostDialog" :visible.sync="hostDialog" width="30%">
-      <el-form :model="hostForm" ref="hostForm" :rules="hostFormRules" :inline="false" label-width="120px" size="small">
-        <el-form-item v-for="item in hostFormItem" :label="item.label" :prop="item.prop">
-          <el-input-number v-if="item.prop == 'value'" v-model="hostForm[item.prop]" :label="item.label" :min="0">
+      <el-form :model="hostForm" ref="hostForm" :rules="hostFormRules" label-width="120px" size="small">
+        <el-form-item v-for="item in hostFormItem" :prop="item.prop">
+          <span slot="label">
+            {{ item.label }}
+            <el-popover v-if="item.pop" placement="top-start" trigger="hover" :ref="`popover-${item.label}`" :content="item.content">
+              <i class="el-icon-info" style="color: grey" slot="reference"></i>
+            </el-popover>
+          </span>
+          <el-input-number v-if="item.prop == 'value'" :precision="4" :step="0.1" v-model="hostForm[item.prop]"
+            :label="item.label" :disabled="hostForm.isSensitive">
           </el-input-number>
           <el-radio-group v-else-if="item.prop == 'isSensitive'" v-model="hostForm[item.prop]"
             @change="isSensitiveChange">
@@ -61,7 +68,7 @@
             <el-radio :label="true">是</el-radio>
           </el-radio-group>
           <el-input-number v-else-if="item.prop == 'sensitiveVal'" v-model="hostForm[item.prop]" :label="item.label"
-            :precision="2" :step="0.1" :min="0" :disabled="!hostForm.isSensitive"></el-input-number>
+            :precision="4" :step="0.1" :min="0.0001" :disabled="!hostForm.isSensitive"></el-input-number>
           <el-select v-else v-model="hostForm[item.prop]" value-key="value" :placeholder="`请选择${item.label}`" @change=""
             :multiple="item.multiple" allow-create default-first-option filterable clearable>
             <el-option
@@ -130,15 +137,15 @@ export default {
         firewall: [],
         value: 0,
         isSensitive: false,
-        sensitiveVal: 0.01,
+        sensitiveVal: 0.0001,
       },
       hostFormItem: [
-        { prop: 'os', label: '操作系统', multiple: false },
-        { prop: 'services', label: '服务', multiple: true },
-        { prop: 'processes', label: '进程', multiple: true },
-        { prop: 'value', label: '主机值' },
-        { prop: 'isSensitive', label: '敏感主机' },
-        { prop: 'sensitiveVal', label: '敏感主机值' },
+        { prop: 'os', label: '操作系统', multiple: false, pop: false },
+        { prop: 'services', label: '服务', multiple: true, pop: false },
+        { prop: 'processes', label: '进程', multiple: true, pop: false },
+        { prop: 'value', label: '主机值', pop: true, content: '主机值是代理成功攻击当前主机后将获得的值，可设置为任意数值。正：奖励值。负：惩罚值。零：无奖励无惩罚。' },
+        { prop: 'isSensitive', label: '敏感主机', pop: true, content: '是否为网络中代理攻击的目标主机。' },
+        { prop: 'sensitiveVal', label: '敏感主机值', pop: true, content: '当前主机是敏感主机时，代理成功攻击后将获得的奖励数值' },
       ],
       hostFormRules: {
         os: [
@@ -232,12 +239,12 @@ export default {
       }
     },
     'option.series.data': function () {
-      if(this.chart){
+      if (this.chart) {
         this.chart.setOption(this.option);
       }
     },
     'option.series.links': function () {
-      if(this.chart){
+      if (this.chart) {
         this.chart.setOption(this.option);
       }
     },
@@ -313,8 +320,10 @@ export default {
       }
     },
     isSensitiveChange(value) {
-      if (!value) {
-        this.hostForm.sensitiveVal = 0.01;
+      if (value) {
+        this.hostForm.value = 0;
+      } else {
+        this.hostForm.sensitiveVal = 0.0001;
       }
     },
     hostClick(type) {

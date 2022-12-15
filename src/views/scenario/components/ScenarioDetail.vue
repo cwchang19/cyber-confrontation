@@ -12,8 +12,16 @@
               <el-form-item v-if="item.key == 'name'" :label="item.label" :prop="item.key">
                 <el-input v-model="scenarioForm[item.key]" :placeholder="'请输入' + item.label" clearable></el-input>
               </el-form-item>
-              <el-form-item v-else :label="item.label" :prop="item.key">
-                <el-input-number v-model="scenarioForm[item.key]" label="item.label" :min="1" style="width: 100%;">
+              <el-form-item v-else :prop="item.key">
+                <span slot="label">
+                  {{ item.label }}
+                  <el-popover placement="top-start" width="400" trigger="hover" :ref="`popover-${item.label}`"
+                    :content="item.content">
+                    <i class="el-icon-info" style="color: grey" slot="reference"></i>
+                  </el-popover>
+                </span>
+                <el-input-number v-model="scenarioForm[item.key]" :precision="item.key == 'step_limit' ? 0 : 4"
+                  label="item.label" :min="0" style="width: 100%;">
                 </el-input-number>
               </el-form-item>
             </template>
@@ -22,7 +30,8 @@
       </el-col>
       <el-col :span="20" :offset="0" class="content-col">
         <el-card shadow="always" :body-style="{ padding: '20px', height: '100%' }" v-loading="!visualizationReady">
-          <Visualization v-if="visualizationReady" :recv-subnet="subnets" :recv-topology="topology" @watchSaveClick="saveScenarioClick"></Visualization>
+          <Visualization v-if="visualizationReady" :recv-subnet="subnets" :recv-topology="topology"
+            @watchSaveClick="saveScenarioClick"></Visualization>
         </el-card>
       </el-col>
     </el-row>
@@ -33,6 +42,7 @@
 import Visualization from '@/components/Visualization/index'
 import { searchScenarioById, addScenario, alterScenario } from '@/api/scenario'
 import { parseScenarioJSON, stringifyScenarioJSON } from '@/utils/other';
+import { Message } from 'element-ui';
 
 
 export default {
@@ -65,11 +75,11 @@ export default {
       },
       formItem: [
         { key: 'name', label: '场景名' },
-        { key: 'service_scan_cost', label: '服务扫描代价' },
-        { key: 'os_scan_cost', label: '系统扫描代价' },
-        { key: 'subnet_scan_cost', label: '子网扫描代价' },
-        { key: 'process_scan_cost', label: '进程扫描代价' },
-        { key: 'step_limit', label: '最大步数' },
+        { key: 'service_scan_cost', label: '服务扫描代价', content: '服务扫描代价必须为非负值，并将计入代理每次执行扫描时收到的奖励中。' },
+        { key: 'os_scan_cost', label: '系统扫描代价', content: '系统扫描代价必须为非负值，并将计入代理每次执行扫描时收到的奖励中。' },
+        { key: 'subnet_scan_cost', label: '子网扫描代价', content: '子网扫描代价必须为非负值，并将计入代理每次执行扫描时收到的奖励中。' },
+        { key: 'process_scan_cost', label: '进程扫描代价', content: '进程扫描代价必须为非负值，并将计入代理每次执行扫描时收到的奖励中。' },
+        { key: 'step_limit', label: '最大步数', content: '定义了渗透测试人员在单次迭代中达到目标的最大步数限制。在模拟过程中，一旦达到步数限制，则认为情节已完成，代理未能达到目标。' },
       ],
       scenarioFormRules: {
         name: [
@@ -114,32 +124,62 @@ export default {
       this.topology = res.topology;
       this.visualizationReady = true;
     },
-    saveScenarioClick(subnets, topology) {
-      this.$refs['scenarioForm'].validate(async (valid) => {
-        if (valid) {
-          if (this.isEdit) {
-            const data = stringifyScenarioJSON(Object.assign(this.scenarioForm, {subnets, topology}));
-            const params = {
-              name: this.scenarioForm.name,
-              directory_id: parseInt(this.directory_id),
+    async saveScenarioClick(subnets, topology) {
+      const checked = await this.topologyCheck(topology);
+      console.log(checked);
+      if (checked) {
+        this.$refs['scenarioForm'].validate(async (valid) => {
+          if (valid) {
+            if (this.isEdit) {
+              const data = stringifyScenarioJSON(Object.assign(this.scenarioForm, { subnets, topology }));
+              const params = {
+                name: this.scenarioForm.name,
+                directory_id: parseInt(this.directory_id),
+              }
+              const response = await alterScenario(parseInt(this.scenario_id), params, data);
+            } else {
+              const data = stringifyScenarioJSON(Object.assign(this.scenarioForm, { subnets, topology }));
+              const params = {
+                name: this.scenarioForm.name,
+                directory_id: this.scenarioForm.directory_id
+              }
+              console.log(data);
+              const response = await addScenario(params, data);
             }
-            const response = await alterScenario(parseInt(this.scenario_id), params, data);
-            // console.log(response);
+            this.$store.dispatch("tagsView/delView", this.$route);
+            this.$router.push("/scenario/index");
           } else {
-            const data = stringifyScenarioJSON(Object.assign(this.scenarioForm, {subnets, topology}));
-            const params = {
-              name: this.scenarioForm.name,
-              directory_id: this.scenarioForm.directory_id
-            }
-            const response = await addScenario(params, data);
+            return false;
           }
-          this.$store.dispatch("tagsView/delView", this.$route);
-          this.$router.push("/scenario/index");
-        } else {
-          return false;
-        }
-      })
+        })
+      }
     },
+    async topologyCheck(topology) {
+      // 先检查 topology
+      let isConnectivity = true;
+      let hasOuter = false;
+      for (let key in topology) {
+        if (topology[key].length == 1) {
+          isConnectivity = false;
+          await Message({
+            message: `非连通图：子网 ${key} 未与其他任何子网相连`,
+            type: 'error',
+            duration: 3 * 1000
+          })
+        }
+        if (!hasOuter && topology[key].includes('0')) {
+          hasOuter = true;
+        }
+      }
+      if (!hasOuter) {
+        await Message({
+          message: `非连通图：外网未与任何子网相连`,
+          type: 'error',
+          duration: 3 * 1000
+        })
+      }
+      return isConnectivity && hasOuter;
+    }
   }
 }
 </script>
@@ -172,6 +212,6 @@ export default {
 }
 
 .clearfix:after {
-  clear: both
+  clear: both;
 }
 </style>

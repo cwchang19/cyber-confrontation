@@ -25,12 +25,18 @@
                     clearable filterable :show-all-levels="false" :disabled="isfromScenario" @change="" style="width: 100%">
                   </el-cascader> -->
                 </el-form-item>
-                <el-form-item label="配置动作空间" size="normal" prop="isActionConfigSet">
+                <el-form-item label="配置动作空间" size="normal" prop="action_id_list">
+                  <el-cascader :options="actionOptions" v-model="trainingForm.action_id_list" clearable filterable :show-all-levels="false"
+                    :props="{ multiple: true }" placeholder="请选择至少一个动作" style="width: 100%">
+                  </el-cascader>
+                </el-form-item>
+                
+                <!-- <el-form-item label="配置动作空间" size="normal" prop="isActionConfigSet">
                   <el-button :type="getActionConfigButtonType" size="default" icon="el-icon-edit" plain
                     @click="openActionDialog" style="width: 100%">
                     修改动作空间配置
                   </el-button>
-                </el-form-item>
+                </el-form-item> -->
                 <el-form-item label="算法" size="normal" prop="algorithm_id">
                   <el-select v-model="trainingForm.algorithm_id" placeholder="请选择算法" filterable style="width: 100%">
                     <el-option v-for="item in algorithmOptions" :key="item.id" :label="item.algorithm_name"
@@ -53,25 +59,17 @@
                 </el-form-item>
               </div>
               <div class="card-content-step1" v-show="active === 1">
-                <el-form-item label="Seed" size="normal" prop="seed">
-                  <el-input-number v-model="trainingForm.seed" :min="0"></el-input-number>
-                  <!-- <el-input v-model.number="trainingForm.seed" placeholder="请输入种子 seed" size="normal">
-                  </el-input> -->
+                <el-form-item label="Seed" size="normal" prop="training_params.seed">
+                  <el-input-number v-model="trainingForm.training_params.seed" :min="0"></el-input-number>
                 </el-form-item>
-                <el-form-item label="Learning Rate" size="normal" prop="learningRate">
-                  <el-input-number v-model="trainingForm.learningRate" :precision="3" :step="0.01" :min="0.001"></el-input-number>
-                  <!-- <el-input v-model.number="trainingForm.learningRate" placeholder="请输入学习率 learning rate" size="normal">
-                  </el-input> -->
+                <el-form-item label="Learning Rate" size="normal" prop="training_params.learningRate">
+                  <el-input-number v-model="trainingForm.training_params.learningRate" :precision="3" :step="0.01" :min="0.001"></el-input-number>
                 </el-form-item>
-                <el-form-item label="Batch Size" size="normal" prop="batchSize">
-                  <el-input-number v-model="trainingForm.batchSize" :min="1"></el-input-number>
-                  <!-- <el-input v-model.number="trainingForm.batchSize" placeholder="请输入批大小 batch size" size="normal">
-                  </el-input> -->
+                <el-form-item label="Batch Size" size="normal" prop="training_params.batchSize">
+                  <el-input-number v-model="trainingForm.training_params.batchSize" :min="1"></el-input-number>
                 </el-form-item>
-                <el-form-item label="Training Steps" size="normal" prop="trainingSteps">
-                  <el-input-number v-model="trainingForm.trainingSteps" :min="1"></el-input-number>
-                  <!-- <el-input v-model.number="trainingForm.trainingSteps" placeholder="请输入跨步 training steps" size="normal">
-                  </el-input> -->
+                <el-form-item label="Training Steps" size="normal" prop="training_params.trainingSteps">
+                  <el-input-number v-model="trainingForm.training_params.trainingSteps" :min="1"></el-input-number>
                 </el-form-item>
                 <el-form-item label="网络和节点可视化类型" size="normal">
                   <el-radio-group v-model="trainingForm.visualizationType">
@@ -91,10 +89,9 @@
                 </el-form-item>
 
                 <el-form-item label="训练目录" size="normal" prop="directory_id">
-                  <el-cascader :options="directoryOptions" v-model="trainingForm.directory_id" filterable :show-all-levels="false"
+                  <el-cascader :options="directoryOptions" v-model="trainingForm.directory_id" filterable :show-all-levels="false" placeholder="请选择训练的保存目录"
                     :props="{ checkStrictly: true, value: 'id', label: 'directory_name' }" style="width: 100%">
                   </el-cascader>
-                  
                 </el-form-item>
 
                 <el-button type="success" size="default" @click="startTrainingClick"
@@ -120,7 +117,7 @@
       </el-col>
     </el-row>
 
-    <el-dialog title="修改动作空间配置" :visible.sync="actionDialogVisible" width="25%">
+    <!-- <el-dialog title="修改动作空间配置" :visible.sync="actionDialogVisible" width="25%">
       <el-form :model="actionSpaceConfigForm" ref="actionSpaceConfigForm" :rules="actionSpaceConfigFormRules"
         label-width="180px" :inline="false" size="normal">
         <el-form-item label="Discovery" size="normal" prop="discovery">
@@ -171,7 +168,7 @@
         <el-button type="primary" @click="actionDialogConfirmClick">确 定
         </el-button>
       </span>
-    </el-dialog>
+    </el-dialog> -->
 
     <el-dialog title="训练节点自定义配置" :visible.sync="nodeDialogVisible" width="50%">
       <span>训练节点自定义配置</span>
@@ -188,9 +185,10 @@
 import Visualization from '@/components/Visualization';
 
 import { searchScenarioAll, searchScenarioById } from '@/api/scenario';
+import { searchActionAll } from '@/api/action'
 import { searchAlgorithmAll } from '@/api/algorithm';
 import { searchDirectory } from '@/api/directory';
-import { addTraining } from '@/api/training'
+import { addTraining } from '@/api/training';
 
 import { arrayToTree, deepCopy, parseScenarioJSON } from '@/utils/other'
 
@@ -206,65 +204,68 @@ export default {
       topology: {},
       isfromScenario: false,
       active: 0,
-      actionDialogVisible: false,
+      // actionDialogVisible: false,
       nodeDialogVisible: false,
       actionConfigButtonType: 'primary',
       trainingNodeConfigButtonType: 'primary',
       trainingForm: {
         training_name: '',
-        training_params: {},
+        training_params: {
+          seed: 0,
+          learningRate: 0.001,
+          batchSize: 1,
+          trainingSteps: 100,
+        },
         scenario_id: '',
         algorithm_id: '',
         directory_id: '',
-        action_id_list: [0],
+        action_id_list: [],
         startNode_id: '',
         directory_parent: '',
-        seed: 0,
-        learningRate: 0.001,
-        batchSize: 1,
-        trainingSteps: 100,
+        // seed: 0,
+        // learningRate: 0.001,
+        // batchSize: 1,
+        // trainingSteps: 100,
         trainingNodeConfigType: 0,
         visualizationType: 0,
         isActionConfigSet: null,
         isTrainNodeConfigSet: null,
-      },
-      actionSpaceConfigForm: {
-        discovery: null,
-        credentialAccess: null,
-        privilegeEscalation: null,
-        lateralMovement: null,
-        exfiltration: null,
-        impact: null,
       },
       trainNodeConfigForm: {
       },
       scenarioOptions: [],
       algorithmOptions: [],
       directoryOptions: [],
-      testOptions: [
+      actionOptions: [
         {
-          value: 'options1',
-          label: '选项1',
+          value: 'Discovery',
+          label: 'Discovery',
+          children: [],
         },
         {
-          value: 'options2',
-          label: '选项2',
+          value: 'Credential Access',
+          label: 'Credential Access',
+          children: [],
         },
         {
-          value: 'options3',
-          label: '选项3',
+          value: 'Privilege Escalation',
+          label: 'Privilege Escalation',
+          children: [],
         },
         {
-          value: 'options4',
-          label: '选项4',
+          value: 'Lateral Movement',
+          label: 'Lateral Movement',
+          children: [],
         },
         {
-          value: 'options5',
-          label: '选项5',
+          value: 'Exfiltration',
+          label: 'Exfiltration',
+          children: [],
         },
         {
-          value: 'options6',
-          label: '选项6',
+          value: 'Impact',
+          label: 'Impact',
+          children: [],
         },
       ],
       trainingFormRules: {
@@ -274,18 +275,20 @@ export default {
         algorithm_id: [
           { required: true, message: '请选择算法', trigger: 'change' },
         ],
-        seed: [
-          { required: true, message: '请输入种子 seed', trigger: 'change' },
-        ],
-        learningRate: [
-          { required: true, message: '请输入学习率 learning rate', trigger: 'change' },
-        ],
-        batchSize: [
-          { required: true, message: '请输入批大小 batch size', trigger: 'change' },
-        ],
-        trainingSteps: [
-          { required: true, message: '请输入训练跨步 training steps', trigger: 'change' },
-        ],
+        training_params: {
+          seed: [
+            { required: true, message: '请输入种子 seed', trigger: 'change' },
+          ],
+          learningRate: [
+            { required: true, message: '请输入学习率 learning rate', trigger: 'change' },
+          ],
+          batchSize: [
+            { required: true, message: '请输入批大小 batch size', trigger: 'change' },
+          ],
+          trainingSteps: [
+            { required: true, message: '请输入训练跨步 training steps', trigger: 'change' },
+          ],
+        },
         isActionConfigSet: [
           { type: 'enum', enum: [true], required: true, message: '请配置动作空间', trigger: 'change' },
         ],
@@ -297,27 +300,10 @@ export default {
         ],
         directory_id: [
           { required: true, message: '训练目录不能为空', trigger: 'change' },
+        ],
+        action_id_list: [
+          { required: true, message: '请至少选择一个动作', trigger: 'change' },
         ]
-      },
-      actionSpaceConfigFormRules: {
-        discovery: [
-          { required: true, message: '请选择 Discovery', trigger: 'change' },
-        ],
-        credentialAccess: [
-          { required: true, message: '请选择 Credential Access', trigger: 'change' },
-        ],
-        privilegeEscalation: [
-          { required: true, message: '请选择 Privilege Escalation', trigger: 'change' },
-        ],
-        lateralMovement: [
-          { required: true, message: '请选择 Lateral Movement', trigger: 'change' },
-        ],
-        exfiltration: [
-          { required: true, message: '请选择 Exfiltration', trigger: 'change' },
-        ],
-        impact: [
-          { required: true, message: '请选择 Impact', trigger: 'change' },
-        ],
       },
     }
   },
@@ -330,6 +316,7 @@ export default {
     this.trainingForm.scenario_id = parseInt(str[0]) || '';
 
     this.fetchScnData();
+    this.fetchActData();
     this.fetchAlgData();
     this.fetchDirData();
   },
@@ -376,6 +363,10 @@ export default {
       const response = await searchAlgorithmAll();
       this.algorithmOptions = response.data;
     },
+    async fetchActData() {
+      const response = await searchActionAll();
+      this.parseAction(response.data);
+    },
     async fetchDirData() {
       const response = await searchDirectory({ type: '训练' });
       this.directoryOptions = arrayToTree(response.data);
@@ -386,10 +377,10 @@ export default {
     nextStep() {
       if (this.active === 0) {
         let stepOneValid = true;
-        let stepOneField = ['scenario_id', 'algorithm_id']
+        let stepOneField = ['scenario_id', 'algorithm_id', 'action_id_list']
         Promise.all(
           stepOneField.map((field) => {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
               this.$refs['trainingForm'].validateField(field, (errorMessage) => {
                 resolve(errorMessage);
               });
@@ -399,10 +390,10 @@ export default {
           let valid = errorMessage.every((errorMessage) => {
             return errorMessage == '';
           });
-          if (!this.trainingForm.isActionConfigSet) {
-            this.trainingForm.isActionConfigSet = false;
-            stepOneValid = false;
-          }
+          // if (!this.trainingForm.isActionConfigSet) {
+          //   this.trainingForm.isActionConfigSet = false;
+          //   stepOneValid = false;
+          // }
           if (this.trainingForm.trainingNodeConfigType === 1) {
             if (!this.trainingForm.isTrainNodeConfigSet) {
               this.trainingForm.isTrainNodeConfigSet = false;
@@ -416,10 +407,10 @@ export default {
           }
         });
       } else if (this.active === 1) {
-        let stepTwoField = ['seed', 'learningRate', 'batchSize', 'trainingSteps'];
+        let stepTwoField = ['training_params.seed', 'training_params.learningRate', 'training_params.batchSize', 'training_params.trainingSteps'] //['seed', 'learningRate', 'batchSize', 'trainingSteps'];
         Promise.all(
           stepTwoField.map((field) => {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
               this.$refs['trainingForm'].validateField(field, (errorMessage) => {
                 resolve(errorMessage);
               });
@@ -437,22 +428,22 @@ export default {
         });
       }
     },
-    openActionDialog() {
-      this.actionDialogVisible = true;
-      this.$nextTick(() => {
-        this.$refs['actionSpaceConfigForm'].clearValidate();
-      });
-    },
-    actionDialogConfirmClick() {
-      this.$refs['actionSpaceConfigForm'].validate((valid) => {
-        if (valid) {
-          this.trainingForm.isActionConfigSet = true;
-          this.actionDialogVisible = false;
-        } else {
-          return false;
-        }
-      })
-    },
+    // openActionDialog() {
+    //   this.actionDialogVisible = true;
+    //   this.$nextTick(() => {
+    //     this.$refs['actionSpaceConfigForm'].clearValidate();
+    //   });
+    // },
+    // actionDialogConfirmClick() {
+    //   this.$refs['actionSpaceConfigForm'].validate((valid) => {
+    //     if (valid) {
+    //       this.trainingForm.isActionConfigSet = true;
+    //       this.actionDialogVisible = false;
+    //     } else {
+    //       return false;
+    //     }
+    //   })
+    // },
     async startTrainingClick() {
       this.trainingForm.action_config = this.actionSpaceConfigForm;
       let data = deepCopy(this.trainingForm);
@@ -463,14 +454,35 @@ export default {
         }
       }
       data.directory_id = data.directory_id[0];
-      // console.log(data);
+      for(let i=0; i<data.action_id_list.length; i++) {
+        data.action_id_list[i] = data.action_id_list[i][1];
+      }
+      console.log(data);
       let response = await addTraining(data);
-      // console.log(response);
       this.$store.dispatch("tagsView/delView", this.$route);
       this.$router.push("/training/index");
     },
-    selectStartNodeClick() {
-      this.trainingForm.startNode_id = 123;
+    // selectStartNodeClick() {
+    //   this.trainingForm.startNode_id = 123;
+    // },
+    parseAction(data) {
+      const map = {
+        'Discovery': 0,
+        'Credential Access': 1,
+        'Privilege Escalation': 2,
+        'Lateral Movement': 3,
+        'Exfiltration': 4,
+        'Impact': 5
+      };
+      data.forEach(item => {
+        let idx = map[item.action_type];
+        if(idx >= 0) {
+          this.actionOptions[idx].children.push({
+            value: item.id,
+            label: item.action_name,
+          })
+        }
+      })
     }
   }
 }

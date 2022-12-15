@@ -7,15 +7,31 @@
           <el-form-item v-if="item.key == 'name'" :label="`[ ${item.label} ]`" :prop="item.key" style="width: 30%;">
             <el-input v-model="scenarioForm[item.key]" :placeholder="'请输入' + item.label" clearable></el-input>
           </el-form-item>
-          <el-form-item v-else-if="item.key == 'uniform' || item.key == 'random_goal'" :label="`[ ${item.label} ]`" style="width: 30%;"
+          <el-form-item v-else-if="item.key == 'uniform' || item.key == 'random_goal'" style="width: 30%;"
             :prop="item.key">
+            <span slot="label">
+              {{ `[ ${item.label} ]` }}
+              <el-popover placement="top-start" trigger="hover" :ref="`popover-${item.label}`"
+                :content="item.content">
+                <i class="el-icon-info" style="color: grey" slot="reference"></i>
+              </el-popover>
+            </span>
             <el-radio-group v-model="scenarioForm[item.key]">
               <el-radio :label="false">否</el-radio>
               <el-radio :label="true">是</el-radio>
             </el-radio-group>
           </el-form-item>
           <el-form-item v-else :label="`[ ${item.label} ]`" :prop="item.key" style="width: 30%;">
-            <el-input :label="item.label" :disabled="(item.key == 'alpha_H' || item.key == 'alpha_V' || item.key == 'lambda_V') && !scenarioForm.uniform" v-model.number="scenarioForm[item.key]">
+            <span slot="label">
+              {{ `[ ${item.label} ]` }}
+              <el-popover placement="top-start" trigger="hover" :ref="`popover-${item.label}`"
+                :content="item.content">
+                <i class="el-icon-info" style="color: grey" slot="reference"></i>
+              </el-popover>
+            </span>
+            <el-input :label="item.label"
+              :disabled="(item.key == 'alpha_H' || item.key == 'alpha_V' || item.key == 'lambda_V') && !scenarioForm.uniform"
+              v-model.number="scenarioForm[item.key]">
             </el-input>
           </el-form-item>
         </template>
@@ -73,32 +89,32 @@ export default {
       },
       formItem: [
         { key: 'name', label: '场景名' },
-        { key: 'num_hosts', label: '主机数量', min: 3 },
-        { key: 'num_services', label: '服务数量', min: 1 },
-        { key: 'num_os', label: '系统数量', min: 1 },
-        { key: 'num_processes', label: '进程数量', min: 1 },
-        { key: 'num_exploits', label: '漏洞数量', min: 1 },
-        { key: 'num_privescs', label: '权限升级操作数', min: 1 },
-        { key: 'r_sensitive', label: '敏感子网奖励' },
-        { key: 'r_user', label: '用户子网奖励' },
-        { key: 'exploit_cost', label: '攻击代价' },
-        { key: 'exploit_probs', label: '攻击成功概率' },
-        { key: 'privesc_cost', label: '权限提升代价' },
-        { key: 'privesc_probs', label: '权限提升成功概率' },
-        { key: 'service_scan_cost', label: '服务扫描代价' },
-        { key: 'os_scan_cost', label: '系统扫描代价' },
-        { key: 'subnet_scan_cost', label: '子网扫描代价' },
-        { key: 'process_scan_cost', label: '进程扫描代价' },
-        { key: 'uniform', label: '是使用统一分布' },
-        { key: 'alpha_H', label: '主机配置之间相关性的缩放浓度参数', min: 0 },
-        { key: 'alpha_V', label: '控制跨主机配置的服务之间的关联', min: 0 },
-        { key: 'lambda_V', label: '控制每个主机配置运行的平均服务数的参数', min: 0 },
-        { key: 'restrictiveness', label: '允许通过区域间防火墙的最大服务数' },
-        { key: 'random_goal', label: '是否随机分配目标用户主机' },
-        { key: 'base_host_value', label: '非敏感主机的值' },
-        { key: 'host_discovery_value', label: '首次发现主机价值' },
-        { key: 'seed', label: '随机种子' },
-        { key: 'step_limit', label: '最大步数' },
+        { key: 'num_hosts', label: '主机数量', min: 3, content: '要包含在网络中的主机数（最小值为 3）' },
+        { key: 'num_services', label: '服务数量', min: 1, content: '网络上运行的服务数（最小值为 1）' },
+        { key: 'num_os', label: '系统数量', min: 1, content: '网络上运行的操作系统数（最小值为 1）' },
+        { key: 'num_processes', label: '进程数量', min: 1, content: '网络上主机上运行的进程数（最小值为 1）' },
+        { key: 'num_exploits', label: '漏洞数量', min: 1, content: '要使用的漏洞利用数（最小值为 1，省略则使用服务数量）' },
+        { key: 'num_privescs', label: '权限升级操作数', min: 1, content: '要使用的权限提升操作数（最小值为 1，省略则使用进程数量）' },
+        { key: 'r_sensitive', label: '敏感子网奖励', content: '敏感子网的奖励数值' },
+        { key: 'r_user', label: '用户子网奖励', content: '用户子网的奖励数值' },
+        { key: 'exploit_cost', label: '漏洞成本', content: '漏洞的成本' },
+        { key: 'exploit_probs', label: '漏洞成功概率', content: '漏洞的成功概率' },
+        { key: 'privesc_cost', label: '权限提升代价', content: '权限提升的代价' },
+        { key: 'privesc_probs', label: '权限提升成功概率', content: '权限提升的成功概率' },
+        { key: 'service_scan_cost', label: '服务扫描代价', content: '服务的扫描成本' },
+        { key: 'os_scan_cost', label: '系统扫描代价', content: '系统的扫描成本' },
+        { key: 'subnet_scan_cost', label: '子网扫描代价', content: '子网的扫描成本' },
+        { key: 'process_scan_cost', label: '进程扫描代价', content: '进程的扫描成本' },
+        { key: 'uniform', label: '是否使用均匀分布', content: '是否使用均匀分布或相关的主机配置' },
+        { key: 'alpha_H', label: 'alpha_H', min: 0, content: '用于控制主机配置之间的核心关系的参数（仅在均匀分布下启用）' },
+        { key: 'alpha_V', label: 'alpha_V', min: 0, content: '用于控制不同主机配置之间的服务核心关系的参数（仅在均匀分布下启用）' },
+        { key: 'lambda_V', label: 'lambda_V', min: 0, content: '用于控制每个主机配置中运行的服务的平均数量的参数（仅在均匀分布下启用）' },
+        { key: 'restrictiveness', label: '防火墙限制数', content: '允许通过区间防火墙的最大服务数' },
+        { key: 'random_goal', label: '随机目标', content: '是否随机分配目标用户主机' },
+        { key: 'base_host_value', label: '一般主机值', content: '非敏感主机的 奖励/惩罚 值' },
+        { key: 'host_discovery_value', label: '发现主机值', content: '首次发现主机时获得的值' },
+        { key: 'seed', label: '随机种子', content: '随机数生成器的种子' },
+        { key: 'step_limit', label: '最大步数', content: '单个情节中允许的最大步数（省略则无限制）' },
       ],
       scenarioFormRules: {
         name: [

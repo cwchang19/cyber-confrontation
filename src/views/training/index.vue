@@ -57,11 +57,11 @@
           </el-row>
           <el-row :gutter="20">
             <el-table :data="tableData" empty-text="未选择目录或当前目录下无数据" style="width: 100%">
-              <el-table-column fixed prop="id" label="序号">
+              <el-table-column fixed prop="id" label="序号" width="100">
               </el-table-column>
               <el-table-column prop="training_name" label="训练名">
               </el-table-column>
-              <el-table-column prop="training_state" label="训练状态">
+              <el-table-column prop="training_state" label="训练状态" width="100">
               </el-table-column>
               <el-table-column prop="create_datetime" label="开始时间">
               </el-table-column>
@@ -69,28 +69,28 @@
               </el-table-column>
               <el-table-column prop="training_position" label="运行节点">
               </el-table-column>
-              <el-table-column fixed="right" label="操作" width="400">
+              <el-table-column fixed="right" label="操作" width="500">
                 <template slot-scope="scope">
                   <!-- <el-button type="primary" size="small">重命名</el-button> -->
                   <el-button v-if="scope.row.training_state === '训练中'" type="success" size="small"
                     @click="pauseClick(scope.row.id)">暂停</el-button>
-                  <el-button v-else-if="scope.row.training_state === '暂停中'" type="success" size="small"
+                  <el-button v-if="scope.row.training_state === '已完成' || scope.row.training_state === '暂停中'" type="success" size="small"
                     @click="continueClick(scope.row.id)">继续</el-button>
-                  <router-link v-else :to="'/training/simulation/' + scope.row.id" style="padding-right: .625rem;">
+                  <el-button v-if="scope.row.training_state === '已完成' || scope.row.training_state === '运行异常'" type=""
+                    size="small" @click="restartClick(scope.row.id)">重启</el-button>
+                  <!-- <router-link v-if="scope.row.training_state === '已完成'" :to="'/training/simulation/' + scope.row.id" style="padding-right: .625rem; padding-left: .625rem;">
                     <el-button type="success" size="small">仿真</el-button>
-                  </router-link>
+                  </router-link> -->
                   <!-- <router-link :to="'/training/simulation/' + scope.row.id">
                     <el-button v-if="scope.row.training_state === '运行异常'" type="success" size="small">仿真</el-button>
                   </router-link> -->
-                  <el-button type="info" size="small"
+                  <el-button v-if="scope.row.training_state === '已完成'" type="info" size="small"
+                    @click="downloadClick(scope.row, 'training_result')">结果</el-button>
+                  <el-button v-if="scope.row.training_state === '运行异常' || scope.row.training_state === '已完成'" type="info" size="small"
+                    @click="downloadClick(scope.row, 'training_log')">日志</el-button>
+                  <el-button type="danger" size="small"
                     @click="deleteTrnDialogVisible = true; selectedTrnId = scope.row.id">
                     删除</el-button>
-                  <el-button v-if="scope.row.training_state === '已完成'" type="warning" size="small"
-                    @click="downloadClick(scope.row, 'training_result')">查看结果</el-button>
-                  <el-button v-if="scope.row.training_state === '运行异常'" type="warning" size="small"
-                    @click="downloadClick(scope.row, 'training_log')">报错信息</el-button>
-                  <el-button v-if="scope.row.training_state === '已完成' || scope.row.training_state === '运行异常'" type=""
-                    size="small" @click="restartClick(scope.row.id)">重新训练</el-button>
                 </template>
               </el-table-column>
             </el-table>

@@ -228,6 +228,7 @@ export function stringifyScenarioJSON(obj) {
       if(host.isSensitive) {
         let sensitiveKey = `(${tempSubnet.index}, ${tempHost.index})`;
         sensitive_hosts[sensitiveKey] = host.sensitiveVal;
+        delete host.value;
       }
       delete host.isSensitive;
       delete host.sensitiveVal;

@@ -18,14 +18,8 @@
             :type="item.key === 'algorithm_name' ? '' : 'textarea'" :placeholder="'请输入' + item.label" size="normal"
             clearable @change="">
           </el-input>
-          <el-upload 
-            v-else
-            action=""
-            :auto-upload="false"
-            :on-remove="algfileRemove"
-            :on-change="algfileChange"
-            :file-list="fileList"
-            :limit="1">
+          <el-upload v-else action="" :auto-upload="false" :on-remove="algfileRemove" :on-change="algfileChange"
+            :file-list="fileList" :limit="1">
             <el-button plain :type="uploadType" icon="el-icon-plus">上传算法文件</el-button>
           </el-upload>
           <!-- <el-button v-else type="primary" plain size="normal" icon="el-icon-plus" @click="">
@@ -46,6 +40,8 @@
 
 <script>
 import { searchAlgorithmById, addAlgorithm, alterAlgorithmInfo, alterAlgorithmFile } from '@/api/algorithm'
+import { Message } from 'element-ui';
+
 export default {
   name: 'AddAlgorithm',
   components: {
@@ -82,6 +78,7 @@ export default {
       formRules: {
         algorithm_name: [
           { required: true, message: '算法名不能为空', trigger: 'change' },
+          { pattern: /^.*\.py$/, message: '算法名需要以 .py 结束，示例：test.py', trigger: 'blur' },
         ],
         algorithm_description: [
           { required: true, message: '算法描述不能为空', trigger: 'change' },
@@ -95,9 +92,9 @@ export default {
     }
   },
   watch: {
-    algfile: function(newVal) {
+    algfile: function (newVal) {
       // console.log(newVal)
-      if(newVal == null) {
+      if (newVal == null) {
         this.uploadType = 'danger';
       } else {
         this.uploadType = 'success';
@@ -115,7 +112,7 @@ export default {
     formBtnClick(type) {
       // type === 'confirm' 是确认按钮点击事件，type === 'cancel' 是取消按钮点击事件
       if (type === 'confirm') {
-        if(!this.isEdit && this.algfile == null) {
+        if (!this.isEdit && this.algfile == null) {
           this.uploadType = 'danger';
           return;
         }
@@ -129,7 +126,7 @@ export default {
               // 向后端请求修改算法this.algorithmForm
               const response = await alterAlgorithmInfo(this.algId, this.algorithmForm);
               // console.log(response);
-              if(this.algfile) {
+              if (this.algfile) {
                 formData.append('file', this.algfile.raw);
                 const fresponse = await alterAlgorithmFile(this.algId, formData);
                 // console.log(fresponse);
@@ -156,7 +153,18 @@ export default {
       this.algfile = null;
     },
     algfileChange(file, fileList) {
-      this.algfile = file;
+      let strs = file.name.split('.');
+      if (strs[strs.length - 1] == 'py') {
+        this.algfile = file;
+      } else {
+        fileList.pop();
+        this.algfile = null;
+        Message({
+          message: `文件类型错误，请上传后缀名为 .py 的文件`,
+          type: 'error',
+          duration: 3 * 1000
+        })
+      }
     }
   }
 }
