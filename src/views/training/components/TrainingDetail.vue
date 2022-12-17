@@ -92,6 +92,7 @@
                 <el-form-item label="训练目录" size="normal" prop="directory_id">
                   <el-cascader :options="directoryOptions" v-model="trainingForm.directory_id" filterable
                     :show-all-levels="false" placeholder="请选择训练的保存目录"
+                    @visible-change="v => visibleChange(v, 'cascader', cascaderClick)" ref="cascader"
                     :props="{ checkStrictly: true, value: 'id', label: 'directory_name' }" style="width: 100%">
                   </el-cascader>
                 </el-form-item>
@@ -181,6 +182,7 @@
         </el-button>
       </span>
     </el-dialog>
+
   </div>
 </template>
 
@@ -328,6 +330,8 @@ export default {
       this.isfromScenario = true;
     }
     this.trainingForm.scenario_id = parseInt(str[0]) || '';
+    this.trainingForm.directory_id = [parseInt(str[1])];
+    console.log(this.trainingForm.directory_id);
 
     this.fetchScnData();
     this.fetchActData();
@@ -503,23 +507,31 @@ export default {
       if (visible) {
         const ref = this.$refs[refName];
         let popper = ref.$refs.popper;
-        if (popper.$el) {
-          popper = popper.$el;
-          if (!Array.from(popper.children).some(v => v.className === 'el-cascader-menu__list')) {
-            const el = document.createElement('ul');
-            el.className = 'el-cascader-menu__list';
-            el.style = 'border-top: solid 1px #E4E7ED; padding: 0; color: #606266;';
-            el.innerHTML = `<li class="el-cascader-node" style="height:38px;line-height: 38px">
-                              <i class="el-icon-plus"></i>
-                              <span class="el-cascader-node__label">新增目录</span>
-                            </li>`;
-            popper.appendChild(el);
-            el.onclick = () => {
-              onClick && onClick();
+        if (popper.$el) popper = popper.$el;
+        if (!Array.from(popper.children).some(v => v.className === 'el-cascader-menu__list')) {
+          const el = document.createElement('ul');
+          el.className = 'el-cascader-menu__list';
+          el.style = 'border-top: solid 1px #E4E7ED; padding:0; color: #606266;';
+          el.innerHTML = `<li class="el-cascader-node" style="height:38px;line-height: 38px">
+<i class="el-icon-plus"></i>
+<span class="el-cascader-node__label">新增一级目录</span>
+</li>`;
+          popper.appendChild(el);
+          el.onclick = () => {
+            // 底部按钮的点击事件 点击后想触发的逻辑也可以直接写在这
+            onClick && onClick();
+            // 以下代码实现点击后弹层隐藏 不需要可以删掉
+            if (ref.toggleDropDownVisible) {
+              ref.toggleDropDownVisible(false);
+            } else {
+              ref.visible = false;
             }
-          }
+          };
         }
       }
+    },
+    cascaderClick() {
+
     }
   }
 }

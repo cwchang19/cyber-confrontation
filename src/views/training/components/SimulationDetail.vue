@@ -75,7 +75,7 @@ export default {
     async debugClick() {
       const response = await debugTraining(this.training_id, { is_begin: this.is_begin, model_path: this.model_path });
       this.is_begin = response.data.done;
-      console.log(response);
+      console.log(response.data.action);
     }
   }
 }
