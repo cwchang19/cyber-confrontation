@@ -76,6 +76,7 @@ export default {
       formRules: {
         algorithm_name: [
           { required: true, message: '算法名不能为空', trigger: 'change' },
+          { pattern: /^.*\.py$/, message: '算法名需要以 .py 结束，示例：test.py', trigger: 'blur' },
         ],
         algorithm_description: [
           { required: true, message: '算法描述不能为空', trigger: 'change' },
@@ -149,7 +150,18 @@ export default {
       this.algfile = null;
     },
     algfileChange(file, fileList) {
-      this.algfile = file;
+      let strs = file.name.split('.');
+      if (strs[strs.length - 1] == 'py') {
+        this.algfile = file;
+      } else {
+        fileList.pop();
+        this.algfile = null;
+        Message({
+          message: `文件类型错误，请上传后缀名为 .py 的文件`,
+          type: 'error',
+          duration: 3 * 1000
+        })
+      }
     }
   }
 }
