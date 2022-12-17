@@ -121,7 +121,7 @@ export const constantRoutes = [
         hidden: true,
       },
       {
-        path: 'simulation/:id(\\d+)',
+        path: 'simulation/:str',
         component: () => import('@/views/training/simulation'),
         name: 'SimulationTraining',
         meta: { title: '仿真', activeMenu: '/training/index' },

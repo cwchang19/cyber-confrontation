@@ -20,8 +20,8 @@
             </el-popover>
           </div>
           <el-row>
-            <el-tree :data="dirData" :props="treeProps" node-key="id" :highlight-current="true" @node-click="handleNodeClick"
-              :expand-on-click-node="false">
+            <el-tree :data="dirData" :props="treeProps" node-key="id" :highlight-current="true"
+              @node-click="handleNodeClick" :expand-on-click-node="false">
               <span class="custom-tree-node" slot-scope="{ node, data }">
                 <span>{{ node.label }}</span>
                 <span>
@@ -43,7 +43,11 @@
       <el-col :span="20">
         <el-card :body-style="{ padding: '20px' }" v-loading="loading">
           <el-row :gutter="20" type="flex" justify="space-between" style="padding: .625rem; padding-top: 0rem;">
-            <div class="search-tool">
+            <div class="refresh-tool">
+              <el-tooltip effect="dark" content="刷新" placement="right">
+                <el-button icon="el-icon-refresh" size="small" :disabled="selectedDirId == ''" circle
+                  @click="fetchTableData"></el-button>
+              </el-tooltip>
             </div>
             <el-tooltip content="请先在左侧选择目录" placement="top" effect="dark" :disabled="selectedDirId != ''">
               <router-link
@@ -63,7 +67,7 @@
               </el-table-column>
               <el-table-column prop="training_state" label="训练状态" width="100">
               </el-table-column>
-              <el-table-column prop="create_datetime" label="开始时间">
+              <el-table-column prop="create_datetime" label="创建时间">
               </el-table-column>
               <el-table-column prop="training_duration" label="训练时长">
               </el-table-column>
@@ -74,23 +78,34 @@
                   <!-- <el-button type="primary" size="small">重命名</el-button> -->
                   <el-button v-if="scope.row.training_state === '训练中'" type="success" size="small"
                     @click="pauseClick(scope.row.id)">暂停</el-button>
-                  <el-button v-if="scope.row.training_state === '已完成' || scope.row.training_state === '暂停中'" type="success" size="small"
-                    @click="continueClick(scope.row.id)">继续</el-button>
+
+                  <el-button v-if="scope.row.training_state === '训练中'" type="success" size="small"
+                    @click="openRealTimeDrawer(scope.row)">查看日志</el-button>
+
+                  <el-button v-if="scope.row.training_state === '已完成' || scope.row.training_state === '暂停中'"
+                    type="success" size="small" @click="continueClick(scope.row.id)">继续</el-button>
+
                   <el-button v-if="scope.row.training_state === '已完成' || scope.row.training_state === '运行异常'" type=""
                     size="small" @click="restartClick(scope.row.id)">重启</el-button>
-                  <!-- <router-link v-if="scope.row.training_state === '已完成'" :to="'/training/simulation/' + scope.row.id" style="padding-right: .625rem; padding-left: .625rem;">
-                    <el-button type="success" size="small">仿真</el-button>
-                  </router-link> -->
+                    
                   <!-- <router-link :to="'/training/simulation/' + scope.row.id">
                     <el-button v-if="scope.row.training_state === '运行异常'" type="success" size="small">仿真</el-button>
                   </router-link> -->
                   <el-button v-if="scope.row.training_state === '已完成'" type="info" size="small"
-                    @click="downloadClick(scope.row, 'training_result')">结果</el-button>
-                  <el-button v-if="scope.row.training_state === '运行异常' || scope.row.training_state === '已完成'" type="info" size="small"
-                    @click="downloadClick(scope.row, 'training_log')">日志</el-button>
+                    @click="resultDrawVisible = true; selectedTrnData = scope.row">结果</el-button>
+
+                  <el-button type="info" size="small"
+                    v-if="scope.row.training_state === '已完成' || scope.row.training_state === '运行异常'"
+                    @click="logDrawVisible = true; selectedTrnData = scope.row">日志</el-button>
+
+                  <router-link v-if="scope.row.training_state === '已完成'" :to="`/training/simulation/${scope.row.id}.${scope.row.scenario_id}`" style="padding-right: .625rem; padding-left: .625rem;">
+                    <el-button type="warning" size="small">仿真</el-button>
+                  </router-link>
+
                   <el-button type="danger" size="small"
                     @click="deleteTrnDialogVisible = true; selectedTrnId = scope.row.id">
                     删除</el-button>
+
                 </template>
               </el-table-column>
             </el-table>
@@ -134,6 +149,45 @@
         <el-button type="danger" @click="deleteDirClick">确认</el-button>
       </span>
     </el-dialog>
+
+    <el-drawer :title="`${selectedTrnData.training_name} 的训练结果列表`" v-if="resultDrawVisible"
+      :visible.sync="resultDrawVisible" direction="rtl" size="30%" :destroy-on-close="true" :show-close="true"
+      :wrapperClosable="true">
+      <div class="drawer-container">
+        <ul>
+          <li v-for="result in selectedTrnData.training_result_list">
+            <div class="drawer-item">
+              <span class="drawer-item-file">{{ result }}</span>
+              <el-button type="text" size="mini"
+                @click="downloadClick(selectedTrnData, 'training_result', result)">下载</el-button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </el-drawer>
+
+    <el-drawer :title="`${selectedTrnData.training_name} 的训练日志列表`" v-if="logDrawVisible" :visible.sync="logDrawVisible"
+      direction="rtl" size="30%" :destroy-on-close="true" :show-close="true" :wrapperClosable="true">
+      <div class="drawer-container">
+        <ul>
+          <li v-for="log in selectedTrnData.training_log_list">
+            <div class="drawer-item">
+              <span class="drawer-item-file">{{ log }}</span>
+              <el-button type="text" size="mini"
+                @click="downloadClick(selectedTrnData, 'training_log', log)">下载</el-button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </el-drawer>
+
+    <el-drawer :title="`${selectedTrnData.training_name} 训练日志`" v-if="realtimeDrawVisible"
+      :visible.sync="realtimeDrawVisible" direction="btt" size="40%" :destroy-on-close="true" :show-close="true"
+      :wrapperClosable="true" :before-close="closeRealTimeDrawer">
+      <p class="log-content">{{ logText }}</p>
+    </el-drawer>
+
+
   </div>
 </template>
 
@@ -148,8 +202,7 @@ import {
   renameTraining
 } from '@/api/training'
 import { searchDirectory, addDirectory, alterDirectory, deleteDirectory } from '@/api/directory'
-import { arrayToTree, deepCopy } from '@/utils/other'
-import { continueStatement } from '@babel/types'
+import { arrayToTree, deepCopy, useTimeFormat, startTimeFormat } from '@/utils/other'
 
 export default {
   data() {
@@ -169,16 +222,21 @@ export default {
       addDirDialogVisible: false,
       editDirDialogVisible: false,
       deleteDirDialogVisible: false,
+      resultDrawVisible: false,
+      logDrawVisible: false,
+      realtimeDrawVisible: false,
       selectedTrnId: '',
       selectedTrnData: {},
       selectedDirId: '',
       newTrainingName: '',
+      logText: '',
       randomStr: this.getRandomStr(),
       dirData: [],
       treeProps: {
         label: 'directory_name'
       },
-      tableData: []
+      tableData: [],
+      requestLogInterval: null,
     }
   },
   created() {
@@ -186,6 +244,12 @@ export default {
   },
   activated() {
     this.fetchTableData();
+  },
+  deactivated() {
+    clearInterval(this.requestLogInterval);
+  },
+  beforeDestroy() {
+    clearInterval(this.requestLogInterval);
   },
   watch: {
     selectedDirId: function () {
@@ -202,6 +266,20 @@ export default {
     editDirDialogVisible: function (val) {
       if (!val)
         this.dirName = '';
+    },
+    realtimeDrawVisible: function (val) {
+      if (!val)
+        this.fetchTableData();
+    },
+    logText: function (val) {
+      if (val != '') {
+        this.$nextTick(() => {
+          const ele = document.querySelector('.el-drawer__body');
+          if (ele.scrollHeight > ele.clientHeight) {
+            ele.scrollTop = ele.scrollHeight;
+          }
+        })
+      }
     }
   },
   methods: {
@@ -212,10 +290,14 @@ export default {
       this.dirData = arrayToTree(response.data);
     },
     async fetchTableData() {
-      if(this.selectedDirId == '') return;
+      if (this.selectedDirId == '') return;
       this.loading = true;
       const params = { directory_id: this.selectedDirId, pageSize: this.pageSize, page: this.page };
       let response = await searchTraining(params);
+      for (let i = 0; i < response.data.items.length; i++) {
+        response.data.items[i].create_datetime = startTimeFormat(response.data.items[i].create_datetime);
+        response.data.items[i].training_duration = useTimeFormat(response.data.items[i].training_duration);
+      }
       this.tableData = response.data.items;
       this.total = response.data.total;
       this.loading = false;
@@ -285,14 +367,10 @@ export default {
       this.deleteDirDialogVisible = false;
       this.fetchDirData();
     },
-    async downloadClick(row, type) {
-      console.log(row);
+    async downloadClick(row, type, path) {
       const params = {
-        // file_path: row.training_path + row[type],
-        // file_path: row.training_path + row[type],
-        file_path: `${row.training_path}${type=='training_result'?'result':'logs'}/${row[type]}`
+        file_path: `${row.training_path}${type == 'training_result' ? 'result' : 'logs'}/${path}`
       };
-      // console.log(params);
       const response = await downloadTraining(params);
       const blob = new Blob([response]);
       const filename = row[type];
@@ -322,11 +400,38 @@ export default {
       const response = await renameTraining(id, { training_name: this.newTrainingName });
       this.fetchTableData();
     },
+    openRealTimeDrawer(row) {
+      const _this = this;
+      this.realtimeDrawVisible = true;
+      this.selectedTrnData = row;
+      const params = {
+        file_path: `${row.training_path}/logs/${row.training_log}`
+      };
+      this.$nextTick(() => {
+        _this.requestLogInterval = setInterval(async () => {
+          const response = await downloadTraining(params);
+          const reader = new FileReader();
+          reader.onload = function () {
+            let str = reader.result;
+            str = str.replace(/\[\n/g, '[');
+            if (str != _this.logText) {
+              _this.logText = str;
+            }
+          };
+          reader.readAsText(response, 'utf-8');
+        }, 3000)
+      })
+    },
+    closeRealTimeDrawer(done) {
+      this.logText = '';
+      clearInterval(this.requestLogInterval);
+      done();
+    }
   }
 }
 </script>
 
-<style scoped>
+<style>
 .training-container {
   padding: 1.25rem;
 }
@@ -338,5 +443,43 @@ export default {
   justify-content: space-between;
   font-size: 14px;
   padding-right: 8px;
+}
+
+.drawer-container {
+  overflow-y: auto;
+}
+
+.drawer-item {
+  display: flex;
+  justify-content: space-between;
+  align-self: center;
+  width: 90%;
+  padding: .5rem 0rem;
+}
+
+li:hover {
+  background-color: #F2F6FC;
+}
+
+.drawer-item-file {
+  display: flex;
+  justify-content: space-between;
+  align-self: center;
+}
+
+/* .log-box {
+  height: 80%;
+  border: 1px solid #DCDFE6;
+  margin: .3125rem .3125rem;
+  overflow-y: auto;
+} */
+
+.log-content {
+  white-space: pre-wrap;
+}
+
+.el-drawer__body {
+  padding: .625rem;
+  overflow-y: auto;
 }
 </style>

@@ -26,11 +26,11 @@
                   </el-cascader> -->
                 </el-form-item>
                 <el-form-item label="配置动作空间" size="normal" prop="action_id_list">
-                  <el-cascader :options="actionOptions" v-model="trainingForm.action_id_list" clearable filterable :show-all-levels="false"
-                    :props="{ multiple: true }" placeholder="请选择至少一个动作" style="width: 100%">
+                  <el-cascader :options="actionOptions" v-model="trainingForm.action_id_list" clearable filterable
+                    :show-all-levels="false" :props="{ multiple: true }" placeholder="请选择至少一个动作" style="width: 100%">
                   </el-cascader>
                 </el-form-item>
-                
+
                 <!-- <el-form-item label="配置动作空间" size="normal" prop="isActionConfigSet">
                   <el-button :type="getActionConfigButtonType" size="default" icon="el-icon-edit" plain
                     @click="openActionDialog" style="width: 100%">
@@ -62,14 +62,15 @@
                 <el-form-item label="Seed" size="normal" prop="training_params.seed">
                   <el-input-number v-model="trainingForm.training_params.seed" :min="0"></el-input-number>
                 </el-form-item>
-                <el-form-item label="Learning Rate" size="normal" prop="training_params.learningRate">
-                  <el-input-number v-model="trainingForm.training_params.learningRate" :precision="3" :step="0.01" :min="0.001"></el-input-number>
+                <el-form-item label="Learning Rate" size="normal" prop="training_params.lr">
+                  <el-input-number v-model="trainingForm.training_params.lr" :precision="3" :step="0.01"
+                    :min="0.001"></el-input-number>
                 </el-form-item>
-                <el-form-item label="Batch Size" size="normal" prop="training_params.batchSize">
-                  <el-input-number v-model="trainingForm.training_params.batchSize" :min="1"></el-input-number>
+                <el-form-item label="Batch Size" size="normal" prop="training_params.batch_size">
+                  <el-input-number v-model="trainingForm.training_params.batch_size" :min="1"></el-input-number>
                 </el-form-item>
-                <el-form-item label="Training Steps" size="normal" prop="training_params.trainingSteps">
-                  <el-input-number v-model="trainingForm.training_params.trainingSteps" :min="1"></el-input-number>
+                <el-form-item label="Training Steps" size="normal" prop="training_params.training_steps">
+                  <el-input-number v-model="trainingForm.training_params.training_steps" :min="1"></el-input-number>
                 </el-form-item>
                 <el-form-item label="网络和节点可视化类型" size="normal">
                   <el-radio-group v-model="trainingForm.visualizationType">
@@ -79,8 +80,8 @@
                 </el-form-item>
               </div>
               <div class="card-content-step2" v-show="active === 2">
-                <el-alert title="请确认填写的训练设置" type="warning" description="确认填写的训练设置无误，然后填写训练名以及选择保存目录，最后点击下方“开始训练”即可开启后台训练。"
-                  show-icon :closable="false">
+                <el-alert title="请确认填写的训练设置" type="warning"
+                  description="确认填写的训练设置无误，然后填写训练名以及选择保存目录，最后点击下方“开始训练”即可开启后台训练。" show-icon :closable="false">
                 </el-alert>
                 <el-form-item label="训练名称" size="normal" prop="training_name">
                   <el-input v-model="trainingForm.training_name" placeholder="请输入训练名" size="normal" clearable
@@ -89,7 +90,8 @@
                 </el-form-item>
 
                 <el-form-item label="训练目录" size="normal" prop="directory_id">
-                  <el-cascader :options="directoryOptions" v-model="trainingForm.directory_id" filterable :show-all-levels="false" placeholder="请选择训练的保存目录"
+                  <el-cascader :options="directoryOptions" v-model="trainingForm.directory_id" filterable
+                    :show-all-levels="false" placeholder="请选择训练的保存目录"
                     :props="{ checkStrictly: true, value: 'id', label: 'directory_name' }" style="width: 100%">
                   </el-cascader>
                 </el-form-item>
@@ -112,7 +114,8 @@
       </el-col>
       <el-col :span="18" :offset="0" class="content-col">
         <el-card shadow="always" :body-style="{ padding: '20px', height: '100%' }" v-loading="!visualizationReady">
-          <Visualization v-if="visualizationReady" :is-train="true" :recv-subnet="subnets" :recv-topology="topology"></Visualization>
+          <Visualization v-if="visualizationReady" :is-train="true" :recv-subnet="subnets" :recv-topology="topology">
+          </Visualization>
         </el-card>
       </el-col>
     </el-row>
@@ -212,9 +215,20 @@ export default {
         training_name: '',
         training_params: {
           seed: 0,
-          learningRate: 0.001,
-          batchSize: 1,
-          trainingSteps: 100,
+          lr: 0.001,
+          batch_size: 1,
+          training_steps: 10000,
+          // replay_size: 100000,
+          // final_epsilon: 0.05,
+          // exploration_steps: 1000,
+          // gamma: 0.99,
+          // hidden_size: [64, 64],
+          // target_update_freq: 1000,
+          // verbose: true,
+          // render_eval: true,
+          // partially_obs: true,
+          // init_epsilon: 1,
+          // quite: true
         },
         scenario_id: '',
         algorithm_id: '',
@@ -223,9 +237,9 @@ export default {
         startNode_id: '',
         directory_parent: '',
         // seed: 0,
-        // learningRate: 0.001,
-        // batchSize: 1,
-        // trainingSteps: 100,
+        // lr: 0.001,
+        // batch_size: 1,
+        // training_steps: 100,
         trainingNodeConfigType: 0,
         visualizationType: 0,
         isActionConfigSet: null,
@@ -279,13 +293,13 @@ export default {
           seed: [
             { required: true, message: '请输入种子 seed', trigger: 'change' },
           ],
-          learningRate: [
+          lr: [
             { required: true, message: '请输入学习率 learning rate', trigger: 'change' },
           ],
-          batchSize: [
+          batch_size: [
             { required: true, message: '请输入批大小 batch size', trigger: 'change' },
           ],
-          trainingSteps: [
+          training_steps: [
             { required: true, message: '请输入训练跨步 training steps', trigger: 'change' },
           ],
         },
@@ -343,8 +357,8 @@ export default {
     }
   },
   watch: {
-    'trainingForm.scenario_id': async function(val) {
-      if(val){
+    'trainingForm.scenario_id': async function (val) {
+      if (val) {
         this.visualizationReady = false;
         const response = await searchScenarioById(val);
         const res = parseScenarioJSON(response.data);
@@ -407,7 +421,7 @@ export default {
           }
         });
       } else if (this.active === 1) {
-        let stepTwoField = ['training_params.seed', 'training_params.learningRate', 'training_params.batchSize', 'training_params.trainingSteps'] //['seed', 'learningRate', 'batchSize', 'trainingSteps'];
+        let stepTwoField = ['training_params.seed', 'training_params.lr', 'training_params.batch_size', 'training_params.training_steps'] //['seed', 'lr', 'batch_size', 'training_steps'];
         Promise.all(
           stepTwoField.map((field) => {
             return new Promise((resolve) => {
@@ -448,15 +462,16 @@ export default {
       this.trainingForm.action_config = this.actionSpaceConfigForm;
       let data = deepCopy(this.trainingForm);
       let keepList = ['training_name', 'training_params', 'scenario_id', 'directory_id', 'algorithm_id', 'action_id_list'];
-      for(let item in data) {
-        if(!keepList.includes(item)) {
+      for (let item in data) {
+        if (!keepList.includes(item)) {
           Reflect.deleteProperty(data, item);
         }
       }
       data.directory_id = data.directory_id[0];
-      for(let i=0; i<data.action_id_list.length; i++) {
+      for (let i = 0; i < data.action_id_list.length; i++) {
         data.action_id_list[i] = data.action_id_list[i][1];
       }
+      // data.training_params['scenario_id'] = data.scenario_id;
       console.log(data);
       let response = await addTraining(data);
       this.$store.dispatch("tagsView/delView", this.$route);
@@ -476,13 +491,35 @@ export default {
       };
       data.forEach(item => {
         let idx = map[item.action_type];
-        if(idx >= 0) {
+        if (idx >= 0) {
           this.actionOptions[idx].children.push({
             value: item.id,
             label: item.action_name,
           })
         }
       })
+    },
+    visibleChange(visible, refName, onClick) {
+      if (visible) {
+        const ref = this.$refs[refName];
+        let popper = ref.$refs.popper;
+        if (popper.$el) {
+          popper = popper.$el;
+          if (!Array.from(popper.children).some(v => v.className === 'el-cascader-menu__list')) {
+            const el = document.createElement('ul');
+            el.className = 'el-cascader-menu__list';
+            el.style = 'border-top: solid 1px #E4E7ED; padding: 0; color: #606266;';
+            el.innerHTML = `<li class="el-cascader-node" style="height:38px;line-height: 38px">
+                              <i class="el-icon-plus"></i>
+                              <span class="el-cascader-node__label">新增目录</span>
+                            </li>`;
+            popper.appendChild(el);
+            el.onclick = () => {
+              onClick && onClick();
+            }
+          }
+        }
+      }
     }
   }
 }

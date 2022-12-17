@@ -323,3 +323,23 @@ export function parseTopology(obj) {
   }
   return links;
 }
+
+export function useTimeFormat(time) {
+  if(time[0] == '-') {
+    return '0 小时 00 分钟 00 秒';
+  }
+  let result = time.split('.');
+  result.pop();
+  result = result[0].split(':');
+  result = result[0] + ' 小时 ' + result[1] + ' 分钟 ' + result[2] + ' 秒 ';
+  return result;
+}
+
+export function startTimeFormat(datetime) {
+  let [date, time] = datetime.split('T');
+  time = time.split('.');
+  time.pop();
+  time.join();
+  let result = date + ' ' + time;
+  return result;
+}

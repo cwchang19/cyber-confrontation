@@ -75,9 +75,10 @@ export function renameTraining(id, params) {
   })
 }
 
-export function debugTraining(id) {
+export function debugTraining(id, params) {
   return request({
     url: '/api/training/debug/' + id,
-    method: 'get'
+    method: 'get',
+    params: params
   })
 }

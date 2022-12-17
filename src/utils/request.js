@@ -85,6 +85,12 @@ service.interceptors.response.use(
     if(error.response.status == 500) {
       // console.log(error.response) // for debug
       errorHandler(error.response);
+    } else if(error.response.status == 401) {
+      Message({
+        message: '登录过期，请重新登录',
+        type: 'error',
+        duration: 5 * 1000
+      })
     } else {
       Message({
         message: error.response.data.message || 'Error',

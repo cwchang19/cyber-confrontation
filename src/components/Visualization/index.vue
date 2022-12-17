@@ -117,7 +117,7 @@ export default {
     recvTopology: {
       type: Object,
       default: null,
-    }
+    },
   },
   data() {
     return {
