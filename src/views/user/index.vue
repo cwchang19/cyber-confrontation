@@ -48,6 +48,9 @@
         <el-form-item label="昵称" prop="nickname">
           <el-input v-model="userForm.nickname" placeholder="请输入昵称" :disabled="isEdit"></el-input>
         </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="userForm.password" placeholder="请输入密码"></el-input>
+        </el-form-item>
         <el-form-item label="用户类型" prop="user_type">
           <el-select v-model="userForm.user_type" placeholder="请选择用户类型" style="width: 100%;">
             <el-option key="管理员" label="管理员" :value="0"></el-option>
@@ -124,6 +127,9 @@ export default {
         ],
         user_type: [
           { required: true, message: '用户类型不能为空', trigger: 'change' },
+        ],
+        password: [
+          { required: true, message: '密码不能为空', trigger: 'change' },
         ],
       },
       formLabelWidth: '120px'
