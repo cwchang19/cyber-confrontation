@@ -112,11 +112,15 @@ export default {
         user_type: ''
       },
       formRules: {
+        nickname: [
+          { required: true, message: '昵称不能为空', trigger: 'change' },
+        ],
         username: [
           { required: true, message: '用户名不能为空', trigger: 'change' },
         ],
         phone: [
           { required: true, message: '手机号不能为空', trigger: 'change' },
+          { pattern: /^1[3|4|5|7|8]\d{9}$/, message: '手机号格式错误', trigger: 'change' },
         ],
         user_type: [
           { required: true, message: '用户类型不能为空', trigger: 'change' },
