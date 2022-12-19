@@ -103,7 +103,6 @@ export default {
         { prop: 'algorithm_description', label: '算法描述', width: '', showOverflowTooltip: true },
         { prop: 'algorithm_file', label: '算法文件', width: '150', showOverflowTooltip: true },
         { prop: 'algorithm_type', label: '算法类型', width: '100' },
-        { prop: 'create_datetime', label: '创建时间', width: '200' },
         { prop: 'operate', label: '操作', width: '150' },
       ],
       tableData: []

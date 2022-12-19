@@ -20,10 +20,19 @@
           <el-table :data="tableData" style="width: 100%">
             <el-table-column v-for="(item, index) in tableColumns" :prop="item.prop" :label="item.label"
               :width="item.width" :show-overflow-tooltip="item.showOverflowTooltip || false">
-              <template v-if="item.prop === 'operate'" v-slot="scope">
-                <el-button type="warning" size="mini" @click="editClick(scope.row)">编辑</el-button>
-                <el-button type="danger" size="mini" @click="deleteUserDialogVisible = true; selectedUserId = scope.row.id">
-                  删除</el-button>
+              <template v-if="item.prop === 'operate' || item.prop === 'user_type' || item.prop === 'create_datetime'" v-slot="scope">
+                <div v-if="item.prop === 'operate'">
+                  <el-button type="warning" size="mini" @click="editClick(scope.row)">编辑</el-button>
+                  <el-button type="danger" size="mini"
+                    @click="deleteUserDialogVisible = true; selectedUserId = scope.row.id">
+                    删除</el-button>
+                </div>
+                <div v-else-if="item.prop === 'user_type'">
+                  {{ scope.row.user_type == 0 ? '管理员' : '用户' }}
+                </div>
+                <div v-else>
+                  {{ startTimeFormat(scope.row.create_datetime) }}
+                </div>
               </template>
             </el-table-column>
           </el-table>
@@ -77,11 +86,14 @@
     
 <script>
 import { searchUserByCondition, addUser, alterUser, deleteUser, searchUserById } from '@/api/userM';
+import { startTimeFormat } from '@/utils/other'
+
 export default {
   name: 'User',
   components: {},
   data() {
     return {
+      startTimeFormat,
       loading: true,
       pageSize: 10,
       page: 1,
@@ -99,7 +111,6 @@ export default {
         { prop: 'nickname', label: '昵称', width: '' },
         { prop: 'username', label: '用户名', width: '' },
         { prop: 'phone', label: '手机号', width: '' },
-        { prop: 'algorithm', label: '算法数', width: '' },
         { prop: 'create_datetime', label: '创建时间', width: '' },
         { prop: 'user_type', label: '用户类型', width: '' },
         { prop: 'operate', label: '操作', width: '150' },

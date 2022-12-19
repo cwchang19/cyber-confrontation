@@ -35,10 +35,19 @@ const actions = {
     return new Promise((resolve, reject) => {
       login({ username: username.trim(), password: password }).then(response => {
         const { data } = response
-        if(data.user) {
-          commit('SET_TOKEN', data.token)
-          setToken(data.token)
-          resolve()
+        if(data.token) {
+          if(data.user.user_type == 0) {
+            commit('SET_TOKEN', data.token)
+            setToken(data.token)
+            resolve()
+          } else {
+            Message({
+              message: '仅支持管理员账号登录',
+              type: 'error',
+              duration: 5 * 1000
+            })
+            reject('仅支持管理员账号登录');
+          }
         } else {
           Message({
             message: data.msg || 'Error',
