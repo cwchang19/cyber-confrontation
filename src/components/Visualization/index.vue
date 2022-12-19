@@ -188,6 +188,10 @@ export default {
         series: {
           type: 'graph',
           layout: 'circular',
+          // force: {
+          //   initLayout: 'circular',
+          //   repulsion: 1000,
+          // },
           symbolSize: 50,
           roam: true,
           label: {

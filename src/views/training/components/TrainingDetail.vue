@@ -92,8 +92,12 @@
                 <el-form-item label="训练目录" size="normal" prop="directory_id">
                   <el-cascader :options="directoryOptions" v-model="trainingForm.directory_id" filterable
                     :show-all-levels="false" placeholder="请选择训练的保存目录"
-                    @visible-change="v => visibleChange(v, 'cascader', cascaderClick)" ref="cascader"
+                    @visible-change="v => visibleChange(v, 'cascader', openDirBox)" ref="cascader"
                     :props="{ checkStrictly: true, value: 'id', label: 'directory_name' }" style="width: 100%">
+                    <template slot-scope="{ node, data }">
+                      <span>{{ data.directory_name }}</span>
+                      <span style="float: right;"><el-button type="text" size="mini" icon="el-icon-plus" :disabled="addDirDisabled" @click="openDirBox(data.id)"></el-button></span>
+                    </template>
                   </el-cascader>
                 </el-form-item>
 
@@ -114,9 +118,12 @@
         </el-card>
       </el-col>
       <el-col :span="18" :offset="0" class="content-col">
-        <el-card shadow="always" :body-style="{ padding: '20px', height: '100%' }" v-loading="!visualizationReady">
-          <Visualization v-if="visualizationReady" :is-train="true" :recv-subnet="subnets" :recv-topology="topology">
+        <el-card shadow="always" :body-style="{ padding: '20px', height: '100%' }">
+          <Visualization v-if="visualizationReady" :key="randomStr" :is-train="true" :recv-subnet="subnets" :recv-topology="topology">
           </Visualization>
+          <el-row v-else style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+            <div style="font-weight: bold; font-size: x-large; color: #909399;">请在左侧选择网络场景</div>
+          </el-row>
         </el-card>
       </el-col>
     </el-row>
@@ -192,7 +199,7 @@ import Visualization from '@/components/Visualization';
 import { searchScenarioAll, searchScenarioById } from '@/api/scenario';
 import { searchActionAll } from '@/api/action'
 import { searchAlgorithmAll } from '@/api/algorithm';
-import { searchDirectory } from '@/api/directory';
+import { addDirectory, searchDirectory } from '@/api/directory';
 import { addTraining } from '@/api/training';
 
 import { arrayToTree, deepCopy, parseScenarioJSON } from '@/utils/other'
@@ -204,6 +211,7 @@ export default {
   },
   data() {
     return {
+      addDirDisabled: false,
       visualizationReady: false,
       subnets: {},
       topology: {},
@@ -213,6 +221,7 @@ export default {
       nodeDialogVisible: false,
       actionConfigButtonType: 'primary',
       trainingNodeConfigButtonType: 'primary',
+      randomStr: '',
       trainingForm: {
         training_name: '',
         training_params: {
@@ -234,7 +243,7 @@ export default {
         },
         scenario_id: '',
         algorithm_id: '',
-        directory_id: '',
+        directory_id: [],
         action_id_list: [],
         startNode_id: '',
         directory_parent: '',
@@ -338,6 +347,13 @@ export default {
     this.fetchAlgData();
     this.fetchDirData();
   },
+  activated() {
+    this.fetchScnData();
+    this.fetchActData();
+    this.fetchAlgData();
+    this.fetchDirData();
+    this.sendScnToVisualization(this.trainingForm.scenario_id);
+  },
   computed: {
     getActionConfigButtonType() {
       switch (this.trainingForm.isActionConfigSet) {
@@ -361,14 +377,9 @@ export default {
     }
   },
   watch: {
-    'trainingForm.scenario_id': async function (val) {
+    'trainingForm.scenario_id': function (val) {
       if (val) {
-        this.visualizationReady = false;
-        const response = await searchScenarioById(val);
-        const res = parseScenarioJSON(response.data);
-        this.subnets = res.subnets;
-        this.topology = res.topology;
-        this.visualizationReady = true;
+        this.sendScnToVisualization(val);
       }
     }
   },
@@ -387,6 +398,23 @@ export default {
     },
     async fetchDirData() {
       const response = await searchDirectory({ type: '训练' });
+      if(this.trainingForm.directory_id.length > 0) {
+        let map = new Map();
+        let target = null;
+        for(let i=0; i<response.data.length; i++) {
+          map.set(response.data[i].id, i);
+          if(response.data[i].id == this.trainingForm.directory_id[0]) {
+            target = response.data[i];
+          }
+        }
+        if(target){
+          let pid = parseInt(target.directory_parent_id);
+          while(pid > 0) {
+            this.trainingForm.directory_id.unshift(pid);
+            pid = parseInt(response.data[map.get(pid)].directory_parent_id);
+          }
+        }
+      }
       this.directoryOptions = arrayToTree(response.data);
     },
     frontStep() {
@@ -408,10 +436,6 @@ export default {
           let valid = errorMessage.every((errorMessage) => {
             return errorMessage == '';
           });
-          // if (!this.trainingForm.isActionConfigSet) {
-          //   this.trainingForm.isActionConfigSet = false;
-          //   stepOneValid = false;
-          // }
           if (this.trainingForm.trainingNodeConfigType === 1) {
             if (!this.trainingForm.isTrainNodeConfigSet) {
               this.trainingForm.isTrainNodeConfigSet = false;
@@ -446,22 +470,6 @@ export default {
         });
       }
     },
-    // openActionDialog() {
-    //   this.actionDialogVisible = true;
-    //   this.$nextTick(() => {
-    //     this.$refs['actionSpaceConfigForm'].clearValidate();
-    //   });
-    // },
-    // actionDialogConfirmClick() {
-    //   this.$refs['actionSpaceConfigForm'].validate((valid) => {
-    //     if (valid) {
-    //       this.trainingForm.isActionConfigSet = true;
-    //       this.actionDialogVisible = false;
-    //     } else {
-    //       return false;
-    //     }
-    //   })
-    // },
     async startTrainingClick() {
       this.trainingForm.action_config = this.actionSpaceConfigForm;
       let data = deepCopy(this.trainingForm);
@@ -471,19 +479,34 @@ export default {
           Reflect.deleteProperty(data, item);
         }
       }
-      data.directory_id = data.directory_id[0];
+      data.directory_id = data.directory_id[data.directory_id.length-1];
       for (let i = 0; i < data.action_id_list.length; i++) {
         data.action_id_list[i] = data.action_id_list[i][1];
       }
       // data.training_params['scenario_id'] = data.scenario_id;
-      console.log(data);
-      let response = await addTraining(data);
-      this.$store.dispatch("tagsView/delView", this.$route);
-      this.$router.push("/training/index");
+      let fields = ['training_name', 'directory_id'];
+      Promise.all(
+        fields.map((field) => {
+          return new Promise((resolve) => {
+            this.$refs['trainingForm'].validateField(field, (errorMessage) => {
+              resolve(errorMessage);
+            });
+          });
+        })
+      ).then(async (errorMessage) => {
+        let valid = errorMessage.every((errorMessage) => {
+          return errorMessage == '';
+        });
+        if (valid) {
+          let response = await addTraining(data);
+          this.$store.dispatch("tagsView/delView", this.$route);
+          this.$router.push("/training/index");
+        } else {
+          return false;
+        }
+      });
+
     },
-    // selectStartNodeClick() {
-    //   this.trainingForm.startNode_id = 123;
-    // },
     parseAction(data) {
       const map = {
         'Discovery': 0,
@@ -519,7 +542,7 @@ export default {
           popper.appendChild(el);
           el.onclick = () => {
             // 底部按钮的点击事件 点击后想触发的逻辑也可以直接写在这
-            onClick && onClick();
+            onClick && onClick(0);
             // 以下代码实现点击后弹层隐藏 不需要可以删掉
             if (ref.toggleDropDownVisible) {
               ref.toggleDropDownVisible(false);
@@ -530,8 +553,37 @@ export default {
         }
       }
     },
-    cascaderClick() {
-
+    openDirBox(pid) {
+      this.addDirDisabled = true;
+      this.$prompt('请输入目录名', '新建目录', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPattern: /.+/,
+        inputErrorMessage: '目录名不能为空',
+      }).then(async ({ value }) => {
+        let data = {
+          directory_name: value,
+          directory_type: '训练',
+          directory_parent_id: parseInt(pid),
+        };
+        const response = await addDirectory(data);
+        this.fetchDirData();
+        this.addDirDisabled = false;
+      }).catch(() => {
+        this.addDirDisabled = false;
+        this.$message({
+          type: 'info',
+          message: '取消新建目录'
+        })
+      })
+    },
+    async sendScnToVisualization(val) {
+      this.visualizationReady = false;
+      const response = await searchScenarioById(val);
+      const res = parseScenarioJSON(response.data);
+      this.subnets = res.subnets;
+      this.topology = res.topology;
+      this.visualizationReady = true;
     }
   }
 }

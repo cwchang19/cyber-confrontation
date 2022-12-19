@@ -13,6 +13,8 @@ function scenarioErrorHandler(res) {
     showErrorMsg('存在空子网！请检查并保证每个子网内至少有1个主机！');
   } else if (res.data.includes('Number of sensitive hosts must be >= 1: 0 not >= 1')) {
     showErrorMsg('网络中敏感主机的数量为0，需包含至少一个敏感主机作为目标主机！')
+  } else {
+    showErrorMsg(res.data);
   }
 }
 

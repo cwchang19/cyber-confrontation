@@ -3,6 +3,9 @@ import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
 import { getToken } from '@/utils/auth'
 import { errorHandler } from '@/utils/error-handler'
+import { debounce } from './other'
+
+const dMessage = debounce(Message, 1000, false);
 
 // create an axios instance
 const service = axios.create({
@@ -86,11 +89,11 @@ service.interceptors.response.use(
       // console.log(error.response) // for debug
       errorHandler(error.response);
     } else if(error.response.status == 401) {
-      Message({
-        message: '登录过期，请重新登录',
+      dMessage({
+        message: '登录过期或账号重复登录，请尝试重新登录！',
         type: 'error',
         duration: 5 * 1000
-      })
+      });
     } else {
       Message({
         message: error.response.data.message || 'Error',

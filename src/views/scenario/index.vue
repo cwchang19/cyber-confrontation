@@ -69,8 +69,8 @@
                   <el-button type="danger" size="mini"
                     @click="deleteScnDialogVisible = true; selectedScnId = scope.row.id">
                     删除</el-button>
-                  <router-link :to="'/training/add/' + scope.row.id">
-                    <el-button type="success" size="mini" style="margin-left: .625rem;">训练</el-button>
+                  <router-link :to="`/training/add/${scope.row.id}..${randomStr}`">
+                    <el-button type="success" size="mini" style="margin-left: .625rem;" @click="randomStr = getRamdomStr()">训练</el-button>
                   </router-link>
                   <router-link :to="'/scenario/edit/' + scope.row.id + '.' + selectedDirId">
                     <el-button type="warning" size="mini" style="margin-left: .625rem;" @click="">修改</el-button>
@@ -279,7 +279,6 @@ export default {
       this.deleteDirDialogVisible = false;
       this.fetchDirData();
     }
-
   }
 }
 </script>

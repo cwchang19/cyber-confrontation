@@ -98,8 +98,8 @@
                     v-if="scope.row.training_state === '已完成' || scope.row.training_state === '运行异常'"
                     @click="logDrawVisible = true; selectedTrnData = scope.row">日志</el-button>
 
-                  <router-link v-if="scope.row.training_state === '已完成'" :to="`/training/simulation/${scope.row.id}.${scope.row.scenario_id}`" style="padding-right: .625rem; padding-left: .625rem;">
-                    <el-button type="warning" size="small">仿真</el-button>
+                  <router-link v-if="scope.row.training_state === '已完成'" :to="`/training/simulation/${scope.row.id}.${scope.row.scenario_id}.${randomStr}`" style="padding-right: .625rem; padding-left: .625rem;">
+                    <el-button type="warning" size="small" @click="randomStr = getRandomStr()">仿真</el-button>
                   </router-link>
 
                   <el-button type="danger" size="small"
@@ -243,6 +243,7 @@ export default {
     this.fetchDirData();
   },
   activated() {
+    this.fetchDirData();
     this.fetchTableData();
   },
   deactivated() {

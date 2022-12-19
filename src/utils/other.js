@@ -1,3 +1,5 @@
+import service from "./request";
+
 export function arrayToTree(items) {
   items.sort((a, b) => { 
     return parseInt(a.id) - parseInt(b.id) 
@@ -172,19 +174,19 @@ export function stringifyScenarioJSON(obj) {
   let firewall = {};
 
   // 先处理只需简单转换的属性
-  if(obj.exploits) {
-    obj.exploits.forEach((exploit, index) => {
-      let key = `e_${exploit.service}_${index}`;
-      exploits[key] = exploit;
-    });
-  }
+  // if(obj.exploits) {
+  //   obj.exploits.forEach((exploit, index) => {
+  //     let key = `e_${exploit.service}_${index}`;
+  //     exploits[key] = exploit;
+  //   });
+  // }
 
-  if(obj.privilege_escalation) {
-    obj.privilege_escalation.forEach((pe, index) => {
-      let key = `pe_${pe.process}_${index}`;
-      privilege_escalation[key] = pe;
-    })
-  }
+  // if(obj.privilege_escalation) {
+  //   obj.privilege_escalation.forEach((pe, index) => {
+  //     let key = `pe_${pe.process}_${index}`;
+  //     privilege_escalation[key] = pe;
+  //   })
+  // }
 
   // 再处理需要复杂转换的属性
   // 先构建子网的 key 和其下标的映射表，同时构建子网中主机的 key 和下标的映射表
@@ -267,6 +269,25 @@ export function stringifyScenarioJSON(obj) {
     }
   }
 
+  exploits['e_ssh'] = {
+    // service: 'ssh',
+    // os: 'linux',
+    service: services[0],
+    os: os[0],
+    prob: 0.8,
+    cost: 1,
+    access: 'user'
+  }
+  privilege_escalation['pe_tomcat'] = {
+    // process: 'tomcat',
+    // os: 'linux',
+    process: processes[0],
+    os: os[0],
+    prob: 1.0,
+    cost: 1,
+    access: 'root',
+  }
+
   // 处理 firewall
   // if(obj.firewall) {
   //   for(let item of obj.firewall) {
@@ -302,7 +323,14 @@ export function parseSubnets(obj) {
   for(let subnetKey in obj) {
     data.push({
       name: `${subnetKey}`,
-      itemStyle: { color: '#91cc75' }
+      itemStyle: { color: '#91cc75' },
+      label: {
+        position: 'inside',
+        color: 'white',
+        formatter: '子网{b}',
+        fontWeight: 'bold',
+        fontSize: 14,
+      }
     })
   }
   return data;
@@ -316,7 +344,8 @@ export function parseTopology(obj) {
       if(parseInt(secondSubnetKey) > key1) {
         links.push({
           source: firstSubnetKey,
-          target: secondSubnetKey
+          target: secondSubnetKey,
+          lineStyle: { color: '#909399' },
         })
       }
     }
@@ -342,4 +371,27 @@ export function startTimeFormat(datetime) {
   time.join();
   let result = date + ' ' + time;
   return result;
+}
+
+export function debounce(func, wait, immediate) {
+  let timeout;
+
+  return function () {
+    let context = this;
+    let args = arguments;
+    if(timeout) clearTimeout(timeout);
+    if(immediate) {
+      let callNow = !timeout;
+      timeout = setTimeout(function() {
+        timeout = null;
+      }, wait);
+      if(callNow) {
+        func.apply(context, args);
+      }
+    } else {
+      timeout = setTimeout(function() {
+        func.apply(context, args);
+      }, wait);
+    }
+  }
 }

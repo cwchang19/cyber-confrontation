@@ -42,7 +42,7 @@
 import Visualization from '@/components/Visualization/index'
 import { searchScenarioById, addScenario, alterScenario } from '@/api/scenario'
 import { parseScenarioJSON, stringifyScenarioJSON } from '@/utils/other';
-import { Message } from 'element-ui';
+import { Notification, Message } from 'element-ui';
 
 
 export default {
@@ -132,6 +132,7 @@ export default {
           if (valid) {
             if (this.isEdit) {
               const data = stringifyScenarioJSON(Object.assign(this.scenarioForm, { subnets, topology }));
+              console.log(data);
               const params = {
                 name: this.scenarioForm.name,
                 directory_id: parseInt(this.directory_id),
@@ -158,24 +159,37 @@ export default {
       // 先检查 topology
       let isConnectivity = true;
       let hasOuter = false;
+      let string = '';
       for (let key in topology) {
         if (topology[key].length == 1) {
           isConnectivity = false;
-          await Message({
-            message: `非连通图：子网 ${key} 未与其他任何子网相连`,
-            type: 'error',
-            duration: 3 * 1000
-          })
+          string += `非连通图：子网 ${key} 未与其他任何子网相连<br/>`;
+          // await Message({
+          //   message: `非连通图：子网 ${key} 未与其他任何子网相连`,
+          //   type: 'error',
+          //   duration: 3 * 1000
+          // })
         }
         if (!hasOuter && topology[key].includes('0')) {
           hasOuter = true;
         }
       }
       if (!hasOuter) {
-        await Message({
-          message: `非连通图：外网未与任何子网相连`,
+        string += `非连通图：外网未与任何子网相连<br/>`;
+        // await Message({
+        //   message: `非连通图：外网未与任何子网相连`,
+        //   type: 'error',
+        //   duration: 3 * 1000
+        // })
+      }
+      if(!(isConnectivity && hasOuter)) {
+        await Notification({
+          customClass: 'notify',
+          dangerouslyUseHTMLString: true,
+          message: string,
           type: 'error',
-          duration: 3 * 1000
+          duration: 0,
+          position: 'bottom-left'
         })
       }
       return isConnectivity && hasOuter;
@@ -213,5 +227,12 @@ export default {
 
 .clearfix:after {
   clear: both;
+}
+
+</style>
+
+<style>
+.notify {
+  width: 25rem;
 }
 </style>
