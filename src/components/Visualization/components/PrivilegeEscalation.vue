@@ -1,8 +1,21 @@
 <template>
   <div class="privilege-escalation-container">
-    <el-row type="flex" justify="end" style="padding: 0px 10px">
-      <el-button type="text" size="small" @click="addPrivilegeEscalation">新增权限提升</el-button>
-      <el-button type="text" size="small" @click="savePrivilegeEscalation">保存</el-button>
+    <el-row>
+      <el-alert title="权限提升说明" type="warning" effect="light" show-icon :closable="false">
+        <template>
+          <div>1. 场景可以不设置权限提升，但请确保可通过漏洞获取root权限，否则将永远无法达到目标。</div>
+          <div>2. 权限提升由（进程，操作系统，成功概率，动作成本，可获取权限）构成。</div>
+          <div>3. 进程：权限提升的目标进程。</div>
+          <div>4. 操作系统：权限提升的目标操作系统。</div>
+          <div>5. 成功概率：在满足所有先决条件的情况下权限提升成功的概率（先决条件即可访问目标主机，并且主机正在运行目标进程和操作系统）。</div>
+          <div>6. 动作成本：执行当前操作的成本，可表示任何意义上的操作成本，例如时间、产生的流量等。</div>
+          <div>7. 可获取权限：权限提升成功后，将在目标主机上获取的访问权限，可以是user（用户权限）或root（根权限）。</div>
+        </template>
+      </el-alert>
+    </el-row>
+    <el-row type="flex" justify="end" style="padding: 10px 10px">
+      <el-button type="success" size="small" @click="addPrivilegeEscalation">新增权限提升</el-button>
+      <el-button type="primary" size="small" @click="savePrivilegeEscalation">保存</el-button>
     </el-row>
     <el-row>
     </el-row>
@@ -106,6 +119,10 @@ export default {
             label: this.os[i]
           }
         }
+        this.os.unshift({
+          value: null,
+          label: '任意操作系统'
+        })
         // console.log(this.services);
       }
       // console.log(this.curSubnetFirewall);

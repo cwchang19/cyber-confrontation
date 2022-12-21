@@ -86,8 +86,8 @@ export function parseScenarioJSON(obj) {
         for(let fwKey in obj.host_configurations[hostKey].firewall) {
           let [targetSubnet, targetHost] = getKeyNum(fwKey);
           hostFirewall.push({
-            sourceSubnet: i,
-            sourceHost: j,
+            sourceSubnet: `${i}`,
+            sourceHost: `${j}`,
             targetSubnet: targetSubnet,
             targetHost: targetHost,
             services: obj.host_configurations[hostKey].firewall[fwKey]
@@ -165,7 +165,7 @@ export function parseScenarioJSON(obj) {
 }
 
 export function stringifyScenarioJSON(obj) {
-  console.log(obj);
+  // console.log(obj);
   
   // 首先处理无需转换的属性
   let os_scan_cost = obj.os_scan_cost || 1;
@@ -191,6 +191,9 @@ export function stringifyScenarioJSON(obj) {
     obj.exploits.forEach((exploit, index) => {
       let key = `e_${exploit.service}_${index}`;
       exploits[key] = exploit;
+      if(exploits[key].os == null) {
+        exploits[key].os = 'none';
+      }
     });
   }
 
@@ -198,6 +201,9 @@ export function stringifyScenarioJSON(obj) {
     obj.privilege_escalation.forEach((pe, index) => {
       let key = `pe_${pe.process}_${index}`;
       privilege_escalation[key] = pe;
+      if(privilege_escalation[key].os == null) {
+        privilege_escalation[key].os = 'none';
+      }
     })
   }
 
@@ -229,16 +235,10 @@ export function stringifyScenarioJSON(obj) {
       let key = `(${tempSubnet.index}, ${tempHost.index})`;
       let host = obj.subnets[subnetKey].hosts[hostKey];
       // 如果主机设置了 firewall ，则需要进行处理
-      // if(host.firewall) {
-      //   let hostFirewall = {};
-      //   // for(let hFirewall of host.firewall) {
-      //   //   // 需要获取目标子网和目标主机的映射
-      //   //   let tempTargetSubnet = subnetMap.get(hFirewall.subnet_num);
-      //   //   let hFirewallKey = `(${tempTargetSubnet.index}, ${tempTargetSubnet.hostMap.get(hFirewall.host_num).index})`;
-      //   //   hostFirewall[hFirewallKey] = hFirewall.types;
-      //   // }
-      //   host.firewall = hostFirewall;
-      // }
+      if(host.firewall) {
+        let hostFirewall = {};
+        host.firewall = hostFirewall;
+      }
       // 如果是敏感主机，添加到 sensitive_hosts 中，并且移除 isSensitive 和 sensitiveVal 属性
       if(host.isSensitive) {
         let sensitiveKey = `(${tempSubnet.index}, ${tempHost.index})`;

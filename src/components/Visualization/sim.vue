@@ -147,10 +147,10 @@ export default {
       });
     },
     solve(data) {
+      if(this.lastTargetDom){
+        this.lastTargetDom.classList.remove('target-host');
+      }
       if(data) {
-        if(this.lastTargetDom){
-          this.lastTargetDom.classList.remove('target-host');
-        }
         this.lastTargetDom = this.$refs[`host${data.subnetNum}-${data.hostNum}`][0];
         this.lastTargetDom.classList.add('target-host');
         // console.log(this.lastTargetDom);

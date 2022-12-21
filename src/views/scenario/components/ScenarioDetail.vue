@@ -137,7 +137,7 @@ export default {
       this.visualizationReady = true;
     },
     async saveScenarioClick(subnets, topology, hostFirewall, subnetFirewall, exploits, privilege_escalation) {
-      const checked = await this.topologyCheck(topology);
+      const checked = await this.checkScn(topology, exploits);
       // console.log(checked);
       if (checked) {
         this.$refs['scenarioForm'].validate(async (valid) => {
@@ -159,19 +159,20 @@ export default {
               console.log(data);
               const response = await addScenario(params, data);
             }
-            // this.$store.dispatch("tagsView/delView", this.$route);
-            // this.$router.push("/scenario/index");
+            this.$store.dispatch("tagsView/delView", this.$route);
+            this.$router.push("/scenario/index");
           } else {
             return false;
           }
         })
       }
     },
-    async topologyCheck(topology) {
-      console.log(topology);
+    async checkScn(topology, exploits) {
+      // console.log(topology);
       // 先检查 topology
       let isConnectivity = true;
-      let hasOuter = false;
+      let hasOuter = true;
+      let hasExploit = true;
       let string = '';
       for (let key in topology) {
         if (topology[key].length == 1) {
@@ -185,6 +186,10 @@ export default {
       if (!hasOuter) {
         string += `非连通图：外网未与任何子网相连<br/>`;
       }
+      if(exploits.length == 0) {
+        string += `场景内请至少设置一个漏洞<br/>`;
+        hasExploit = false;
+      }
       if (!(isConnectivity && hasOuter)) {
         await Notification({
           customClass: 'notify',
@@ -195,7 +200,7 @@ export default {
           position: 'bottom-left'
         })
       }
-      return isConnectivity && hasOuter;
+      return isConnectivity && hasOuter && hasExploit;
     }
   }
 }

@@ -39,10 +39,10 @@
           </el-col>
         </el-row>
         <el-row class="main-tool-container">
-          <el-button type="text" size="mini" @click="subnetFirewallDrawer = true;">子网间防火墙设置</el-button>
-          <el-button type="text" size="mini" @click="hostFirewallDrawer = true;">主机间防火墙设置</el-button>
-          <el-button type="text" size="mini" @click="exploitDrawer = true;">漏洞设置</el-button>
-          <el-button type="text" size="mini" @click="privilegeEscalationDrawer = true;">权限提升设置</el-button>
+          <el-button type="primary" size="mini" @click="exploitDrawer = true;">漏洞设置</el-button>
+          <el-button type="info" plain size="mini" @click="privilegeEscalationDrawer = true;">权限提升设置</el-button>
+          <el-button type="info" plain size="mini" @click="subnetFirewallDrawer = true;">子网间防火墙设置</el-button>
+          <el-button type="info" plain size="mini" @click="hostFirewallDrawer = true;">主机间防火墙设置</el-button>
         </el-row>
       </el-col>
       <el-col :span="12" style="height: 100%;">
@@ -600,6 +600,7 @@ export default {
   height: 4%;
   display: flex;
   justify-content: end;
+  margin-top: .3125rem;
 }
 
 .main-edit-item {

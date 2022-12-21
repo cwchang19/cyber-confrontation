@@ -1,22 +1,30 @@
 <template>
   <div class="host-firewall-container">
-    <el-row type="flex" justify="end" style="padding: 0px 10px">
-      <el-button type="text" size="small" @click="addFirewall">新增防火墙</el-button>
-      <el-button type="text" size="small" @click="saveFirewall">保存</el-button>
+    <el-row>
+      <el-alert title="主机间防火墙说明" type="warning" effect="light" show-icon :closable="false">
+        <template>
+          <div>1. 每个主机间防火墙设置由（当前主机，目标主机，阻止服务）构成，即阻止从目标主机到当前主机的特定服务。</div>
+          <div>2. 当阻止服务设置为空或两个主机间不设置防火墙时，表示允许从目标主机到当前主机的任何服务。</div>
+        </template>
+      </el-alert>
+    </el-row>
+    <el-row type="flex" justify="end" style="padding: 10px 10px">
+      <el-button type="success" size="small" @click="addFirewall">新增防火墙</el-button>
+      <el-button type="primary" size="small" @click="saveFirewall">保存</el-button>
     </el-row>
     <el-row>
     </el-row>
     <el-table :data="firewalls" stripe>
       <el-table-column props="no" label="No" type="index">
       </el-table-column>
-      <el-table-column props="source" label="起始主机">
+      <el-table-column props="source" label="当前主机">
         <template slot-scope="scope">
-          <el-select v-model="scope.row.sourceSubnet" size="mini" placeholder="选择起始子网" filterable
+          <el-select v-model="scope.row.sourceSubnet" size="mini" placeholder="选择当前子网" filterable
             @change="scope.row.sourceHost = ''; scope.row.targetSubnet = ''; scope.row.targetHost = '';">
             <el-option v-for="item in sourceSubnet" :key="item.value" :label="item.label"
               :value="item.value"></el-option>
           </el-select>
-          <el-select v-model="scope.row.sourceHost" size="mini" placeholder="选择起始主机" filterable>
+          <el-select v-model="scope.row.sourceHost" size="mini" placeholder="选择当前主机" filterable>
             <el-option v-for="item in host[scope.row.sourceSubnet]" :key="item.value" :label="item.label"
               :value="item.value"></el-option>
           </el-select>
@@ -132,6 +140,8 @@ export default {
       }
       // console.log(this.curSubnetFirewall);
       if (this.curHostFirewall) {
+        console.log(this.curHostFirewall);
+        console.log(this.sourceSubnet);
         this.firewalls = deepCopy(this.curHostFirewall);
       }
     },
