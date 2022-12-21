@@ -10,9 +10,9 @@
                 <span>{{ `子网 ${subnetKey}` }}</span>
               </div>
               <div v-for="(host, hostKey) in subnet.hosts" :key="hostKey" class="host-item">
-                <span :style="'color:' + (host.isSensitive ? '#F56C6C' : '#67C23A')">
+                <div :ref="`host${subnetKey}-${hostKey}`" :style="`color: ${host.isSensitive ? '#F56C6C' : '#67C23A'}; width: 100%; padding: 5px`">
                   {{ `${host.isSensitive ? '敏感' : ''}主机 ${hostKey}` }}
-                </span>
+                </div>
               </div>
             </el-card>
           </el-col>
@@ -63,6 +63,7 @@ export default {
   },
   data() {
     return {
+      lastTargetDom: null,
       chart: null,
       subnetNum: 0,
       subnets: {},
@@ -147,6 +148,12 @@ export default {
     },
     solve(data) {
       if(data) {
+        if(this.lastTargetDom){
+          this.lastTargetDom.classList.remove('target-host');
+        }
+        this.lastTargetDom = this.$refs[`host${data.subnetNum}-${data.hostNum}`][0];
+        this.lastTargetDom.classList.add('target-host');
+        // console.log(this.lastTargetDom);
         this.actionStr = data.action;
         let newOption = deepCopy(this.originOption);
         this.option = newOption;
@@ -233,5 +240,11 @@ export default {
   top: 6.25rem;
   right: 1.25rem;
   font-size: large;
+}
+
+.target-host {
+  border: 2px solid #E6A23C;
+  border-radius: .3125rem;
+  background-color: #e6a23c15;
 }
 </style>

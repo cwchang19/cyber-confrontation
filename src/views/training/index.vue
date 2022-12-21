@@ -374,7 +374,7 @@ export default {
       };
       const response = await downloadTraining(params);
       const blob = new Blob([response]);
-      const filename = row[type];
+      const filename = `${path}`;
       const elink = document.createElement('a');
       elink.download = filename;
       elink.style.display = 'none';

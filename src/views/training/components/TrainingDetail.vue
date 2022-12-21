@@ -340,7 +340,7 @@ export default {
     }
     this.trainingForm.scenario_id = parseInt(str[0]) || '';
     this.trainingForm.directory_id = [parseInt(str[1])];
-    console.log(this.trainingForm.directory_id);
+    // console.log(this.trainingForm.directory_id);
 
     this.fetchScnData();
     this.fetchActData();

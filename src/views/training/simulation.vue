@@ -11,7 +11,7 @@
       SimulationDetail,
     },
     data() {
-
+      return {}
     },
   }
 </script>

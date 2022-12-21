@@ -38,6 +38,12 @@
             </el-button>
           </el-col>
         </el-row>
+        <el-row class="main-tool-container">
+          <el-button type="text" size="mini" @click="subnetFirewallDrawer = true;">子网间防火墙设置</el-button>
+          <el-button type="text" size="mini" @click="hostFirewallDrawer = true;">主机间防火墙设置</el-button>
+          <el-button type="text" size="mini" @click="exploitDrawer = true;">漏洞设置</el-button>
+          <el-button type="text" size="mini" @click="privilegeEscalationDrawer = true;">权限提升设置</el-button>
+        </el-row>
       </el-col>
       <el-col :span="12" style="height: 100%;">
         <el-row style="height: 100%">
@@ -55,7 +61,8 @@
         <el-form-item v-for="item in hostFormItem" :prop="item.prop">
           <span slot="label">
             {{ item.label }}
-            <el-popover v-if="item.pop" placement="top-start" trigger="hover" :ref="`popover-${item.label}`" :content="item.content">
+            <el-popover v-if="item.pop" placement="top-start" trigger="hover" :ref="`popover-${item.label}`"
+              :content="item.content">
               <i class="el-icon-info" style="color: grey" slot="reference"></i>
             </el-popover>
           </span>
@@ -94,17 +101,47 @@
       </span>
     </el-dialog>
 
+    <el-drawer title="子网间防火墙设置" v-if="subnetFirewallDrawer" :visible.sync="subnetFirewallDrawer" direction="rtl"
+      :before-close="drawerClose" size="35%" :destroy-on-close="true" :show-close="true" :wrapperClosable="true">
+      <SubnetFirewall v-if="subnetFirewallDrawer" @watchSubnetFirewall="saveSubnetFirewall"
+        :cur-subnet-firewall="subnetFirewall" :cur-topology="topology" :cur-subnet="subnets"></SubnetFirewall>
+    </el-drawer>
 
+    <el-drawer title="主机间防火墙设置" v-if="hostFirewallDrawer" :visible.sync="hostFirewallDrawer" direction="rtl"
+      :before-close="drawerClose" size="35%" :destroy-on-close="true" :show-close="true" :wrapperClosable="true">
+      <HostFirewall v-if="hostFirewallDrawer" @watchHostFirewall="saveHostFirewall" :cur-host-firewall="hostFirewall"
+        :cur-topology="topology" :cur-subnet="subnets"></HostFirewall>
+    </el-drawer>
+
+    <el-drawer title="漏洞设置" v-if="exploitDrawer" :visible.sync="exploitDrawer" direction="rtl"
+      :before-close="drawerClose" size="45%" :destroy-on-close="true" :show-close="true" :wrapperClosable="true">
+      <Exploit v-if="exploitDrawer" @watchExploit="saveExploit" :cur-exploit="exploits" :cur-subnet="subnets"></Exploit>
+    </el-drawer>
+
+    <el-drawer title="权限提升设置" v-if="privilegeEscalationDrawer" :visible.sync="privilegeEscalationDrawer" direction="rtl"
+      :before-close="drawerClose" size="45%" :destroy-on-close="true" :show-close="true" :wrapperClosable="true">
+      <PrivilegeEscalation v-if="privilegeEscalationDrawer" @watchPrivilegeEscalation="savePrivilegeEscalation"
+        :cur-privilege-escalation="privilegeEscalation" :cur-subnet="subnets"></PrivilegeEscalation>
+    </el-drawer>
   </div>
 </template>
 
 <script>
+import SubnetFirewall from './components/SubnetFirewall.vue';
+import HostFirewall from './components/HostFirewall.vue';
+import Exploit from './components/Exploit.vue';
+import PrivilegeEscalation from './components/PrivilegeEscalation.vue';
 import { deepCopy, parseSubnets, parseTopology } from '@/utils/other';
 import * as echarts from 'echarts';
 
 export default {
   name: 'Visualization',
-  components: {},
+  components: {
+    SubnetFirewall,
+    HostFirewall,
+    Exploit,
+    PrivilegeEscalation
+  },
   props: {
     isTrain: {
       type: Boolean,
@@ -118,6 +155,22 @@ export default {
       type: Object,
       default: null,
     },
+    recvHostFirewall: {
+      type: Array,
+      default: null
+    },
+    recvSubnetFirewall: {
+      type: Array,
+      default: null
+    },
+    recvExploits: {
+      type: Array,
+      default: null
+    },
+    recvPrivilegeEscalation: {
+      type: Array,
+      default: null
+    }
   },
   data() {
     return {
@@ -125,6 +178,10 @@ export default {
       hostDialog: false,
       hostDialogType: 'add',
       topologyDialog: false,
+      subnetFirewallDrawer: false,
+      hostFirewallDrawer: false,
+      exploitDrawer: false,
+      privilegeEscalationDrawer: false,
       maxSubnetId: 1,
       subnetNum: 0,
       subnets: {},
@@ -178,6 +235,10 @@ export default {
       ],
       topology: {},
       tempTopology: [],
+      subnetFirewall: [],
+      hostFirewall: [],
+      exploits: [],
+      privilegeEscalation: [],
       option: {
         title: {
           text: '子网拓扑结构'
@@ -266,6 +327,10 @@ export default {
       this.topology = this.recvTopology;
       this.option.series.data = parseSubnets(this.subnets);
       this.option.series.links = parseTopology(this.topology);
+      this.hostFirewall = deepCopy(this.recvHostFirewall);
+      this.subnetFirewall = deepCopy(this.recvSubnetFirewall);
+      this.exploits = deepCopy(this.recvExploits);
+      this.privilegeEscalation = deepCopy(this.recvPrivilegeEscalation);
     },
     echartsInit() {
       this.$nextTick(() => {
@@ -301,6 +366,25 @@ export default {
         }
       }
       this.option.series.links = newLinks;
+
+      // 处理子网间防火墙
+      for (let i = 0; i < this.subnetFirewall.length; i++) {
+        let source = this.subnetFirewall[i].source;
+        let target = this.subnetFirewall[i].target;
+        if (source == key || target == key) {
+          this.subnetFirewall.splice(i, 1);
+          i--;
+        }
+      }
+      // 处理主机间防火墙
+      for (let i = 0; i < this.hostFirewall.length; i++) {
+        let source = this.hostFirewall[i].sourceSubnet;
+        let target = this.hostFirewall[i].targetSubnet;
+        if (source == key || target == key) {
+          this.hostFirewall.splice(i, 1);
+          i--;
+        }
+      }
     },
     openTopologyDialog(subnetKey) {
       this.currentSubnet = subnetKey;
@@ -316,7 +400,7 @@ export default {
         this.$refs['hostForm'].clearValidate();
       });
       if (type == 'edit') {
-        console.log(this.subnets[subnetKey].hosts[hostKey]);
+        // console.log(this.subnets[subnetKey].hosts[hostKey]);
         let host = this.subnets[subnetKey].hosts[hostKey];
         this.$nextTick(() => {
           this.hostForm = deepCopy(host);
@@ -348,13 +432,37 @@ export default {
     deleteHostClick(subnetKey, hostKey) {
       let subnet = this.subnets[subnetKey];
       this.$delete(subnet.hosts, `${hostKey}`);
+      // 处理主机间防火墙
+      for (let i = 0; i < this.hostFirewall.length; i++) {
+        let sourceSubnet = this.hostFirewall[i].sourceSubnet;
+        let targetSubnet = this.hostFirewall[i].targetSubnet;
+        let sourceHost = this.hostFirewall[i].sourceHost;
+        let targetHost = this.hostFirewall[i].targetHost;
+        if (sourceSubnet == subnetKey && sourceHost == hostKey) {
+          this.hostFirewall.splice(i, 1);
+          i--;
+        } else if (targetSubnet == subnetKey && targetHost == hostKey) {
+          this.hostFirewall.splice(i, 1);
+          i--;
+        }
+      }
     },
     topologyConfirmClick() {
       // 在被选择连接的子网处同步添加当前子网
       this.tempTopology.forEach((item) => {
+        // console.log(item);
+        // console.log(this.topology);
         if (item != '0') {
           if (this.topology[item].indexOf(this.currentSubnet) == -1) {
             this.topology[item].push(this.currentSubnet);
+          }
+        } else {
+          if (this.topology[item]) {
+            if (this.topology[item].indexOf(this.currentSubnet) == -1) {
+              this.topology[item].push(this.currentSubnet);
+            }
+          } else {
+            this.topology[item] = ['0', this.currentSubnet];
           }
         }
       });
@@ -402,9 +510,58 @@ export default {
       })
       this.option.series.links = newLinks;
       this.topologyDialog = false;
+
+      // 处理子网间防火墙
+      for (let i = 0; i < this.subnetFirewall.length; i++) {
+        let source = this.subnetFirewall[i].source;
+        let target = this.subnetFirewall[i].target;
+        let index = this.topology[source].indexOf(target);
+        if (index == -1) {
+          this.subnetFirewall.splice(i, 1);
+        }
+      }
+      // 处理主机间防火墙
+      for (let i = 0; i < this.hostFirewall.length; i++) {
+        let source = this.hostFirewall[i].sourceSubnet;
+        let target = this.hostFirewall[i].targetSubnet;
+        let index = this.topology[source].indexOf(target);
+        if (index == -1) {
+          this.hostFirewall.splice(i, 1);
+        }
+      }
     },
     saveScenarioClick() {
-      this.$emit('watchSaveClick', deepCopy(this.subnets), deepCopy(this.topology));
+      this.$emit('watchSaveClick', deepCopy(this.subnets), deepCopy(this.topology), deepCopy(this.hostFirewall), deepCopy(this.subnetFirewall), deepCopy(this.exploits), deepCopy(this.privilegeEscalation));
+    },
+    openSubnetFirewall() {
+      this.subnetFirewallDrawer = true;
+    },
+    saveSubnetFirewall(data) {
+      // console.log(data);
+      this.subnetFirewall = data;
+      this.$message.success('保存成功');
+    },
+    saveHostFirewall(data) {
+      // console.log(data)
+      this.hostFirewall = data;
+      this.$message.success('保存成功');
+    },
+    saveExploit(data) {
+      this.exploits = data;
+      this.$message.success('保存成功');
+    },
+    savePrivilegeEscalation(data) {
+      this.privilegeEscalation = data;
+      this.$message.success('保存成功');
+    },
+    drawerClose(done) {
+      this.$confirm('确认关闭？将会丢失未保存的数据！')
+        .then(_ => {
+          done();
+          this.subnetFirewallDrawer = false;
+          console.log(this.subnetFirewall);
+        })
+        .catch(_ => { })
     }
   }
 }
@@ -431,12 +588,18 @@ export default {
 }
 
 .main-edit-container {
-  height: 100%;
+  height: 96%;
   overflow-y: auto;
   padding: .3125rem;
   border: 1px solid #DCDFE6;
   border-radius: .3125rem;
   background-color: #F5F7FA;
+}
+
+.main-tool-container {
+  height: 4%;
+  display: flex;
+  justify-content: end;
 }
 
 .main-edit-item {

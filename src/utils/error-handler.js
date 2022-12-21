@@ -8,7 +8,7 @@ export function errorHandler(res) {
 }
 
 function scenarioErrorHandler(res) {
-  console.log(res);
+  // console.log(res);
   if(res.data.includes('0 invalid subnet size, must be positive int')) {
     showErrorMsg('存在空子网！请检查并保证每个子网内至少有1个主机！');
   } else if (res.data.includes('Number of sensitive hosts must be >= 1: 0 not >= 1')) {

@@ -31,7 +31,8 @@
       <el-col :span="20" :offset="0" class="content-col">
         <el-card shadow="always" :body-style="{ padding: '20px', height: '100%' }" v-loading="!visualizationReady">
           <Visualization v-if="visualizationReady" :recv-subnet="subnets" :recv-topology="topology"
-            @watchSaveClick="saveScenarioClick"></Visualization>
+            :recv-host-firewall="hostFirewall" :recv-subnet-firewall="subnetFirewall" :recv-exploits="exploits"
+            :recv-privilege-escalation="privilege_escalation" @watchSaveClick="saveScenarioClick"></Visualization>
         </el-card>
       </el-col>
     </el-row>
@@ -63,6 +64,10 @@ export default {
       directory_id: '',
       subnets: {},
       topology: {},
+      hostFirewall: [],
+      subnetFirewall: [],
+      exploits: [],
+      privilege_escalation: [],
       visualizationReady: false,
       scenarioForm: {
         name: '',
@@ -118,20 +123,27 @@ export default {
   methods: {
     async fetchData() {
       const response = await searchScenarioById(this.scenario_id);
+      // console.log('response', response);
       const res = parseScenarioJSON(response.data);
+      // console.log('res', res);
       this.scenarioForm = Object.assign(this.scenarioForm, res);
       this.subnets = res.subnets;
       this.topology = res.topology;
+      this.hostFirewall = res.hostFirewall;
+      this.subnetFirewall = res.subnetFirewall;
+      this.exploits = res.exploits;
+      this.privilege_escalation = res.privilege_escalation;
+
       this.visualizationReady = true;
     },
-    async saveScenarioClick(subnets, topology) {
+    async saveScenarioClick(subnets, topology, hostFirewall, subnetFirewall, exploits, privilege_escalation) {
       const checked = await this.topologyCheck(topology);
-      console.log(checked);
+      // console.log(checked);
       if (checked) {
         this.$refs['scenarioForm'].validate(async (valid) => {
           if (valid) {
             if (this.isEdit) {
-              const data = stringifyScenarioJSON(Object.assign(this.scenarioForm, { subnets, topology }));
+              const data = stringifyScenarioJSON(Object.assign(this.scenarioForm, { subnets, topology, hostFirewall, subnetFirewall, exploits, privilege_escalation }));
               console.log(data);
               const params = {
                 name: this.scenarioForm.name,
@@ -139,7 +151,7 @@ export default {
               }
               const response = await alterScenario(parseInt(this.scenario_id), params, data);
             } else {
-              const data = stringifyScenarioJSON(Object.assign(this.scenarioForm, { subnets, topology }));
+              const data = stringifyScenarioJSON(Object.assign(this.scenarioForm, { subnets, topology, hostFirewall, subnetFirewall, exploits, privilege_escalation }));
               const params = {
                 name: this.scenarioForm.name,
                 directory_id: this.scenarioForm.directory_id
@@ -147,8 +159,8 @@ export default {
               console.log(data);
               const response = await addScenario(params, data);
             }
-            this.$store.dispatch("tagsView/delView", this.$route);
-            this.$router.push("/scenario/index");
+            // this.$store.dispatch("tagsView/delView", this.$route);
+            // this.$router.push("/scenario/index");
           } else {
             return false;
           }
@@ -156,6 +168,7 @@ export default {
       }
     },
     async topologyCheck(topology) {
+      console.log(topology);
       // 先检查 topology
       let isConnectivity = true;
       let hasOuter = false;
@@ -164,11 +177,6 @@ export default {
         if (topology[key].length == 1) {
           isConnectivity = false;
           string += `非连通图：子网 ${key} 未与其他任何子网相连<br/>`;
-          // await Message({
-          //   message: `非连通图：子网 ${key} 未与其他任何子网相连`,
-          //   type: 'error',
-          //   duration: 3 * 1000
-          // })
         }
         if (!hasOuter && topology[key].includes('0')) {
           hasOuter = true;
@@ -176,13 +184,8 @@ export default {
       }
       if (!hasOuter) {
         string += `非连通图：外网未与任何子网相连<br/>`;
-        // await Message({
-        //   message: `非连通图：外网未与任何子网相连`,
-        //   type: 'error',
-        //   duration: 3 * 1000
-        // })
       }
-      if(!(isConnectivity && hasOuter)) {
+      if (!(isConnectivity && hasOuter)) {
         await Notification({
           customClass: 'notify',
           dangerouslyUseHTMLString: true,
@@ -228,7 +231,6 @@ export default {
 .clearfix:after {
   clear: both;
 }
-
 </style>
 
 <style>

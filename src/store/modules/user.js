@@ -40,7 +40,7 @@ const actions = {
           setToken(data.token)
           resolve()
         } else {
-          console.log('error');
+          // console.log('error');
           Message({
             message: data.msg || 'Error',
             type: 'error',
