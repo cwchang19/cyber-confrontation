@@ -1,61 +1,12 @@
 <template>
-  <div class="training-simulation-detail-container">
-    <h1>仿真</h1>
+  <div class="training-result-detail-container">
+    <h1>结果</h1>
     <el-row :gutter="20" class="content-row">
       <el-col :span="6" :offset="0" class="content-col">
         <el-card shadow="always" :body-style="{ padding: '20px', height: '100%' }" v-loading="loading">
-          <el-card shadow="always" style="height: 15%" :body-style="{ padding: '20px', height: '100%' }">
-            <el-row style="height: 100%;" type="flex" justify="space-between" align="middle">
-              <div>
-                <el-tooltip effect="dark" content="自动调试" placement="top">
-                  <el-button type="primary" icon="el-icon-video-play" :disabled="isAutoing" @click="autoClick"></el-button>
-                </el-tooltip>
-              </div>
-              <div>
-                <el-tooltip effect="dark" content="暂停调试" placement="top">
-                  <el-button type="primary" icon="el-icon-video-pause" :disabled="!isAutoing"
-                    @click="stopClick"></el-button>
-                </el-tooltip>
-              </div>
-              <div>
-                <el-tooltip effect="dark" content="上一步" placement="top">
-                  <el-button type="primary" icon="el-icon-d-arrow-left" :disabled="(curStep == 0) || isAutoing"
-                    @click="frontClick"></el-button>
-                </el-tooltip>
-              </div>
-              <div>
-                <el-tooltip effect="dark" content="下一步" placement="top">
-                  <el-button type="primary" icon="el-icon-d-arrow-right"
-                    :disabled="(history.length > 0 && isDone) || isAutoing" :loading="!isAutoing && isRequest"
-                    @click="nextClick"></el-button>
-                </el-tooltip>
-              </div>
-              <div>
-                <el-tooltip effect="dark" content="重启" placement="top">
-                  <el-button type="primary" icon="el-icon-refresh-left" :disabled="isRequest || isAutoing" @click="restartClick"></el-button>
-                </el-tooltip>
-              </div>
-            </el-row>
-          </el-card>
-
-          <!-- <el-row type="flex" justify="space-around" style="margin-top: 50px;">
-            <el-button type="primary" size="default" plain style="width: 120px" @click="autoClick">自动调试</el-button>
-            <el-button type="primary" size="default" plain style="width: 120px" :disabled="!isAutoing"
-              @click="stopClick">暂停</el-button>
-          </el-row>
-          <el-row type="flex" justify="space-around" style="margin-top: 50px;">
-            <el-button type="primary" size="default" plain style="width: 120px" :disabled="(curStep == 0) || isAutoing"
-              @click="frontClick">上一步</el-button>
-            <el-button type="primary" size="default" plain style="width: 120px"
-              :disabled="(history.length > 0 && isDone) || isAutoing" :loading="!isAutoing && isRequest"
-              @click="nextClick">下一步</el-button>
-          </el-row> -->
-          <!-- <el-row type="flex" justify="space-around" style="margin-top: 50px;">
-            <el-button type="primary" size="default" plain style="width: 320px" @click="restartClick">重启</el-button>
-          </el-row> -->
           <el-row style="margin-top: 20px;">
             <span>Steps</span>
-            <el-table ref="historyTable" :data="history" :height="400" size="mini" current-row-key="steps"
+            <el-table ref="historyTable" :data="history" :height="700" size="mini" current-row-key="steps"
               @row-click="rowClick" highlight-current-row stripe>
               <el-table-column prop="steps" width="50">
               </el-table-column>
@@ -66,19 +17,7 @@
               </el-table-column>
             </el-table>
           </el-row>
-          <el-row>
-            <div>
-              {{ `Step ${debugData && debugData.steps}: ${debugData && debugData.action}` }}
-            </div>
-            <div>
-              {{ `Reward: ${debugData && debugData.reward}` }}
-            </div>
-            <div>
-              {{ `Done: ${debugData && debugData.done}` }}
-            </div>
-          </el-row>
           
-
           <!-- <Test :test-val="testVal"></Test> -->
         </el-card>
       </el-col>
@@ -97,19 +36,13 @@ import Sim from '@/components/Visualization/sim'
 // import Test from '@/views/test/index'
 import { searchScenarioById } from '@/api/scenario';
 import { debugTraining } from '@/api/training'
-import { arrayToTree, deepCopy, parseScenarioJSON } from '@/utils/other'
+import { parseScenarioJSON } from '@/utils/other'
 
 export default {
-  name: 'SimulationDetail',
+  name: 'ResultDetail',
   components: {
     Sim,
     // Test,
-  },
-  props: {
-    isEdit: {
-      type: Boolean,
-      default: false
-    }
   },
   data() {
     return {
@@ -145,7 +78,6 @@ export default {
   },
   watch: {
     debugData: function (val) {
-      console.log(val);
       this.highlightRow(val);
     }
   },
@@ -165,12 +97,11 @@ export default {
       while(response.data.length == 0) {
         response = await debugTraining(this.training_id, { is_begin: true, model_path: this.model_path });
       }
-      console.log('res', response);
-      this.debugSteps = response.data;
-      for(let i=0; i<this.debugSteps.length; i++) {
-        this.stepMap.set(this.debugSteps[i].steps, i);
+      this.history = response.data;
+      for(let i=0; i<this.history.length; i++) {
+        this.stepMap.set(this.history[i].steps, i);
+        this.history[i] = this.solve(this.history[i]);
       }
-      console.log(this.debugSteps);
       this.loading = false;
     },
     // async nextClick() {
@@ -269,12 +200,14 @@ export default {
     rowClick(row, column, event) {
       this.curStep = this.stepMap.get(row.steps);
       this.debugData = this.history[this.curStep];
+      console.log(this.debugData);
     },
     highlightRow(row) {
       this.$refs.historyTable.setCurrentRow(row, true);
       this.$nextTick(() => {
         let curRow = document.querySelector('.current-row');
-        this.$refs.historyTable.bodyWrapper.scrollTop = curRow.offsetTop;
+        if(curRow)
+          this.$refs.historyTable.bodyWrapper.scrollTop = curRow.offsetTop;
       })
     }
   }
@@ -282,7 +215,7 @@ export default {
 </script>
 
 <style scoped>
-.training-simulation-detail-container {
+.training-result-detail-container {
   padding: 0 1rem 0 1rem;
 }
 

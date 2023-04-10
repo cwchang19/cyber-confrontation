@@ -59,20 +59,23 @@
                 </el-form-item>
               </div>
               <div class="card-content-step1" v-show="active === 1">
-                <el-form-item label="Seed" size="normal" prop="training_params.seed">
+                <el-form-item label="Seed" size="small" prop="training_params.seed">
                   <el-input-number v-model="trainingForm.training_params.seed" :min="0"></el-input-number>
                 </el-form-item>
-                <el-form-item label="Learning Rate" size="normal" prop="training_params.lr">
+                <el-form-item label="Learning Rate" size="small" prop="training_params.lr">
                   <el-input-number v-model="trainingForm.training_params.lr" :precision="3" :step="0.01"
                     :min="0.001"></el-input-number>
                 </el-form-item>
-                <el-form-item label="Batch Size" size="normal" prop="training_params.batch_size">
+                <el-form-item label="Batch Size" size="small" prop="training_params.batch_size">
                   <el-input-number v-model="trainingForm.training_params.batch_size" :min="1"></el-input-number>
                 </el-form-item>
-                <el-form-item label="Training Steps" size="normal" prop="training_params.training_steps">
+                <el-form-item label="Training Steps" size="small" prop="training_params.training_steps">
                   <el-input-number v-model="trainingForm.training_params.training_steps" :min="1"></el-input-number>
                 </el-form-item>
-                <el-form-item label="网络和节点可视化类型" size="normal">
+                <!-- <el-form-item label="自定义训练参数" size="small">
+                  <el-button type="text" size="small" @click="selfParamsDrawer = true">设置自定义参数</el-button>
+                </el-form-item> -->
+                <el-form-item label="网络和节点可视化类型" size="small">
                   <el-radio-group v-model="trainingForm.visualizationType">
                     <el-radio :label="0">局部可观察</el-radio>
                     <el-radio :label="1">全局可观察</el-radio>
@@ -96,7 +99,8 @@
                     :props="{ checkStrictly: true, value: 'id', label: 'directory_name' }" style="width: 100%">
                     <template slot-scope="{ node, data }">
                       <span>{{ data.directory_name }}</span>
-                      <span style="float: right;"><el-button type="text" size="mini" icon="el-icon-plus" :disabled="addDirDisabled" @click="openDirBox(data.id)"></el-button></span>
+                      <span style="float: right;"><el-button type="text" size="mini" icon="el-icon-plus"
+                          :disabled="addDirDisabled" @click="openDirBox(data.id)"></el-button></span>
                     </template>
                   </el-cascader>
                 </el-form-item>
@@ -119,9 +123,11 @@
       </el-col>
       <el-col :span="18" :offset="0" class="content-col">
         <el-card shadow="always" :body-style="{ padding: '20px', height: '100%' }">
-          <Visualization v-if="visualizationReady" :key="randomStr" :is-train="true" :recv-subnet="subnets" :recv-topology="topology">
+          <Visualization v-if="visualizationReady" :key="randomStr" :is-train="true" :recv-subnet="subnets"
+            :recv-topology="topology">
           </Visualization>
-          <el-row v-else style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+          <el-row v-else
+            style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
             <div style="font-weight: bold; font-size: x-large; color: #909399;">请在左侧选择网络场景</div>
           </el-row>
         </el-card>
@@ -190,6 +196,50 @@
       </span>
     </el-dialog>
 
+    <el-drawer title="自定义参数" v-if="selfParamsDrawer" :visible.sync="selfParamsDrawer" direction="rtl" size="50%"
+      :destroy-on-close="true" :show-close="true" :wrapperClosable="true" :before-close="checkParams">
+      <el-button type="success" size="small" @click="addParams">添加参数</el-button>
+      <el-button type="success" size="small" @click="addParams">保存</el-button>
+      <el-table :data="selfParams" stripe>
+        <el-table-column label="No" type="index">
+        </el-table-column>
+        <el-table-column prop="name" label="参数名" width="200">
+          <template slot-scope="scope">
+            <el-input v-model="scope.row.name" placeholder="请输入参数名" size="mini" clearable></el-input>
+          </template>
+        </el-table-column>
+        <el-table-column prop="type" label="数据类型" width="200">
+          <template slot-scope="scope">
+            <el-select v-model="scope.row.type" placeholder="请选择数据类型" clearable size="mini"
+              @change="scope.row.value = ''">
+              <el-option key="Integer" label="Integer" value="Integer"></el-option>
+              <el-option key="Float" label="Float" value="Float"></el-option>
+              <el-option key="String" label="String" value="String"></el-option>
+              <el-option key="Boolean" label="Boolean" value="Boolean"></el-option>
+              <el-option key="Array" label="Array" value="Array"></el-option>
+            </el-select>
+          </template>
+        </el-table-column>
+        <el-table-column prop="value" label="参数值" width="">
+          <template v-if="scope.row.type" slot-scope="scope">
+            <el-input v-if="scope.row.type != 'Boolean'" v-model="scope.row.value"
+              :placeholder="getPlaceholder(scope.row.type)" size="mini" clearable></el-input>
+            <el-select v-else v-model="scope.row.value" placeholder="请选择布尔值" size="mini">
+              <el-option key="true" label="true" :value="true"></el-option>
+              <el-option key="false" label="false" :value="false"></el-option>
+            </el-select>
+          </template>
+        </el-table-column>
+        <el-table-column width="50">
+          <template slot-scope="scope">
+            <el-button type="text" size="mini" icon="el-icon-close" @click="deleteParams(scope)"></el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+    </el-drawer>
+
+
   </div>
 </template>
 
@@ -201,6 +251,7 @@ import { searchActionAll } from '@/api/action'
 import { searchAlgorithmAll } from '@/api/algorithm';
 import { addDirectory, searchDirectory } from '@/api/directory';
 import { addTraining } from '@/api/training';
+import { Notification } from 'element-ui';
 
 import { arrayToTree, deepCopy, parseScenarioJSON } from '@/utils/other'
 
@@ -211,6 +262,7 @@ export default {
   },
   data() {
     return {
+      selfParamsDrawer: false,
       addDirDisabled: false,
       visualizationReady: false,
       subnets: {},
@@ -227,12 +279,12 @@ export default {
         training_params: {
           seed: 0,
           lr: 0.001,
-          batch_size: 1,
-          training_steps: 10000,
+          batch_size: 32,
+          training_steps: 20000,
           // replay_size: 100000,
-          // final_epsilon: 0.05,
-          // exploration_steps: 1000,
-          // gamma: 0.99,
+          final_epsilon: 0.5,
+          exploration_steps: 10000,
+          gamma: 0.9,
           // hidden_size: [64, 64],
           // target_update_freq: 1000,
           // verbose: true,
@@ -330,6 +382,7 @@ export default {
           { required: true, message: '请至少选择一个动作', trigger: 'change' },
         ]
       },
+      selfParams: [],
     }
   },
   created() {
@@ -374,7 +427,7 @@ export default {
         default:
           return 'primary';
       }
-    }
+    },
   },
   watch: {
     'trainingForm.scenario_id': function (val) {
@@ -398,18 +451,18 @@ export default {
     },
     async fetchDirData() {
       const response = await searchDirectory({ type: '训练' });
-      if(this.trainingForm.directory_id.length > 0) {
+      if (this.trainingForm.directory_id.length > 0) {
         let map = new Map();
         let target = null;
-        for(let i=0; i<response.data.length; i++) {
+        for (let i = 0; i < response.data.length; i++) {
           map.set(response.data[i].id, i);
-          if(response.data[i].id == this.trainingForm.directory_id[0]) {
+          if (response.data[i].id == this.trainingForm.directory_id[0]) {
             target = response.data[i];
           }
         }
-        if(target){
+        if (target) {
           let pid = parseInt(target.directory_parent_id);
-          while(pid > 0) {
+          while (pid > 0) {
             this.trainingForm.directory_id.unshift(pid);
             pid = parseInt(response.data[map.get(pid)].directory_parent_id);
           }
@@ -479,7 +532,7 @@ export default {
           Reflect.deleteProperty(data, item);
         }
       }
-      data.directory_id = data.directory_id[data.directory_id.length-1];
+      data.directory_id = data.directory_id[data.directory_id.length - 1];
       for (let i = 0; i < data.action_id_list.length; i++) {
         data.action_id_list[i] = data.action_id_list[i][1];
       }
@@ -584,6 +637,92 @@ export default {
       this.subnets = res.subnets;
       this.topology = res.topology;
       this.visualizationReady = true;
+    },
+    getPlaceholder(type) {
+      switch (type) {
+        case 'Integer':
+          return '请输入整数值';
+        case 'Float':
+          return '请输入浮点数值';
+        case 'String':
+          return '请输入字符串';
+        case 'Array':
+          return '请依次输入数组元素，数组元素间以","分隔，可输入混合类型数组';
+      }
+    },
+    addParams() {
+      this.selfParams.push({
+        name: '',
+        type: '',
+        value: ''
+      })
+    },
+    deleteParams(scope) {
+      this.selfParams.splice(scope.$index, 1);
+    },
+    checkParams(done) {
+      let result = '';
+      let paramSet = new Set();
+      for (let i = 0; i < this.selfParams.length; i++) {
+        if (this.selfParams[i].name == '') {
+          result += `序号${i + 1}：参数名不能为空<br/>`;
+        } else {
+          if (paramSet.has(this.selfParams[i].name)) {
+            result += `序号${i + 1}：参数名${this.selfParams[i].name}重复<br/>`;
+          } else {
+            paramSet.add(this.selfParams[i].name);
+          }
+        }
+        if (this.selfParams[i].type == '') {
+          result += `序号${i + 1}：数据类型不能为空<br/>`;
+        }
+        if (this.selfParams[i].value == '') {
+          result += `序号${i + 1}：参数值不能为空<br/>`;
+        } else {
+          let errTypeStr = this.checkType(this.selfParams[i].type, this.selfParams[i].value);
+          if(errTypeStr != '') {
+            result += `序号${i + 1}：${errTypeStr}<br/>`;
+          }
+        }
+      }
+      if(result == '') {
+        done();
+      } else {
+        Notification({
+          type: 'error',
+          message: result,
+          dangerouslyUseHTMLString: true,
+          duration: 0,
+          position: 'top-left'
+        })
+      }
+    },
+    checkType(type, value) {
+      switch(type) {
+        case 'Integer':
+          if((/^(\+|-)?\d+$/).test(value)) {
+            return '';
+          } else {
+            return '输入的参数值不是整数类型';
+          }
+        case 'Float':
+          if((/^(\+|-)?\d*(\.(\d+)?)?$/).test(value)) {
+            return '';
+          } else {
+            return '输入的参数值不是浮点数类型';
+          }
+        case 'String':
+          return '';
+        case 'Boolean':
+          return '';
+        case 'Array':
+          try {
+            JSON.parse(`[${value}]`);
+          } catch(err) {
+            return '输入的参数值与数组类型不符，请参考说明中的数组格式';
+          }
+          return '';
+      }
     }
   }
 }

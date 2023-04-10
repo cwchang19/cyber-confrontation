@@ -1,5 +1,7 @@
 <template>
-  <SimulationDetail></SimulationDetail>
+  <div class="simulation-container">
+    <SimulationDetail></SimulationDetail>
+  </div>
 </template>
 
 <script>

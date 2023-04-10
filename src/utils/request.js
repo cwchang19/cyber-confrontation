@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
+import router from '@/router'
 import { getToken } from '@/utils/auth'
 import { errorHandler } from '@/utils/error-handler'
 import { debounce } from './other'
@@ -89,11 +90,16 @@ service.interceptors.response.use(
       // console.log(error.response) // for debug
       errorHandler(error.response);
     } else if(error.response.status == 401) {
-      dMessage({
-        message: '登录过期或账号重复登录，请尝试重新登录！',
-        type: 'error',
-        duration: 5 * 1000
-      });
+      store.dispatch('user/resetToken').then(() => {
+        // location.reload()
+        router.push(`/login?status=401`)
+      }).then(() => {
+        dMessage({
+          message: '登录过期或账号重复登录，请尝试重新登录！',
+          type: 'error',
+          duration: 5 * 1000
+        });
+      })
     } else {
       Message({
         message: error.response.data.message || 'Error',

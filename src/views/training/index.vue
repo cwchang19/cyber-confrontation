@@ -87,7 +87,7 @@
 
                   <el-button v-if="scope.row.training_state === '已完成' || scope.row.training_state === '运行异常'" type=""
                     size="small" @click="restartClick(scope.row.id)">重启</el-button>
-                    
+
                   <!-- <router-link :to="'/training/simulation/' + scope.row.id">
                     <el-button v-if="scope.row.training_state === '运行异常'" type="success" size="small">仿真</el-button>
                   </router-link> -->
@@ -98,7 +98,9 @@
                     v-if="scope.row.training_state === '已完成' || scope.row.training_state === '运行异常'"
                     @click="logDrawVisible = true; selectedTrnData = scope.row">日志</el-button>
 
-                  <router-link v-if="scope.row.training_state === '已完成'" :to="`/training/simulation/${scope.row.id}.${scope.row.scenario_id}.${randomStr}`" style="padding-right: .625rem; padding-left: .625rem;">
+                  <router-link v-if="scope.row.training_state === '已完成'"
+                    :to="`/training/simulation/${scope.row.id}.${scope.row.scenario_id}.${randomStr}`"
+                    style="padding-right: .625rem; padding-left: .625rem;">
                     <el-button type="warning" size="small" @click="randomStr = getRandomStr()">仿真</el-button>
                   </router-link>
 
@@ -155,11 +157,19 @@
       :wrapperClosable="true">
       <div class="drawer-container">
         <ul>
-          <li v-for="result in selectedTrnData.training_result_list">
+          <li v-for="result in selectedTrnData.training_result_list" :key="result">
             <div class="drawer-item">
               <span class="drawer-item-file">{{ result }}</span>
-              <el-button type="text" size="mini"
-                @click="downloadClick(selectedTrnData, 'training_result', result)">下载</el-button>
+              <div>
+                
+                <router-link v-if="result.includes('.pt')"
+                  :to="`/training/result/${selectedTrnData.id}.${selectedTrnData.scenario_id}.${randomStr}`">
+                  <el-button  type="text" size="mini"
+                    @click="randomStr = getRandomStr(); resultDrawVisible = false">查看</el-button>
+                </router-link>
+                <el-button type="text" size="mini"
+                  @click="downloadClick(selectedTrnData, 'training_result', result)">下载</el-button>
+              </div>
             </div>
           </li>
         </ul>
@@ -170,11 +180,15 @@
       direction="rtl" size="30%" :destroy-on-close="true" :show-close="true" :wrapperClosable="true">
       <div class="drawer-container">
         <ul>
-          <li v-for="log in selectedTrnData.training_log_list">
+          <li v-for="log in selectedTrnData.training_log_list" :key="log">
             <div class="drawer-item">
               <span class="drawer-item-file">{{ log }}</span>
-              <el-button type="text" size="mini"
-                @click="downloadClick(selectedTrnData, 'training_log', log)">下载</el-button>
+              <div>
+                <el-button type="text" size="mini"
+                  @click="showLogClick(selectedTrnData, log)">查看</el-button>
+                <el-button type="text" size="mini"
+                  @click="downloadClick(selectedTrnData, 'training_log', log)">下载</el-button>
+              </div>
             </div>
           </li>
         </ul>
@@ -183,9 +197,17 @@
 
     <el-drawer :title="`${selectedTrnData.training_name} 训练日志`" v-if="realtimeDrawVisible"
       :visible.sync="realtimeDrawVisible" direction="btt" size="40%" :destroy-on-close="true" :show-close="true"
-      :wrapperClosable="true" :before-close="closeRealTimeDrawer">
+      :wrapperClosable="true" :before-close="closeRealTimeDrawer" @close="logText = ''">
       <p class="log-content">{{ logText }}</p>
     </el-drawer>
+
+    <el-dialog :title="selectedTrnData.training_name" v-if="showLogDialog" :visible.sync="showLogDialog" width="70%"
+      @close="logText = ''">
+      <div style="height: 70%; overflow-y: auto;" v-loading="logLoading">
+        <p class="log-content">{{ logText }}</p>
+      </div>
+    </el-dialog>
+
 
 
   </div>
@@ -208,6 +230,7 @@ export default {
   data() {
     return {
       loading: false,
+      logLoading: false,
       pageSize: 10,
       page: 1,
       tempPage: 1,
@@ -225,6 +248,7 @@ export default {
       resultDrawVisible: false,
       logDrawVisible: false,
       realtimeDrawVisible: false,
+      showLogDialog: false,
       selectedTrnId: '',
       selectedTrnData: {},
       selectedDirId: '',
@@ -427,6 +451,28 @@ export default {
       this.logText = '';
       clearInterval(this.requestLogInterval);
       done();
+    },
+    showLogClick(row, path) {
+      const _this = this;
+      this.showLogDialog = true;
+      this.selectedTrnData = row;
+      const params = {
+        file_path: `${row.training_path}logs/${path}`
+      };
+      this.$nextTick(async () => {
+        _this.logLoading = true;
+        const response = await downloadTraining(params);
+        _this.logLoading = false;
+        const reader = new FileReader();
+        reader.onload = function () {
+          let str = reader.result;
+          str = str.replace(/\[\n/g, '[');
+          if (str != _this.logText) {
+            _this.logText = str;
+          }
+        };
+        reader.readAsText(response, 'utf-8');
+      })
     }
   }
 }
@@ -477,6 +523,7 @@ li:hover {
 
 .log-content {
   white-space: pre-wrap;
+  height: 100%;
 }
 
 .el-drawer__body {

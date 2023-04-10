@@ -4,6 +4,8 @@ export function errorHandler(res) {
   const url = res.config.url;
   if(url.includes('/api/scenario')) {
     scenarioErrorHandler(res);
+  } else {
+    scenarioErrorHandler(res);
   }
 }
 

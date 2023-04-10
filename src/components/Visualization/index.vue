@@ -38,7 +38,7 @@
             </el-button>
           </el-col>
         </el-row>
-        <el-row class="main-tool-container">
+        <el-row v-if="!isTrain" class="main-tool-container">
           <el-button type="primary" size="mini" @click="exploitDrawer = true;">漏洞设置</el-button>
           <el-button type="info" plain size="mini" @click="privilegeEscalationDrawer = true;">权限提升设置</el-button>
           <el-button type="info" plain size="mini" @click="subnetFirewallDrawer = true;">子网间防火墙设置</el-button>

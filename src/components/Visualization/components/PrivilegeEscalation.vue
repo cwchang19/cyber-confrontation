@@ -51,7 +51,7 @@
       </el-table-column>
       <el-table-column props="access" label="获取访问权限">
         <template slot-scope="scope">
-          <el-select v-model="scope.row.access" size="mini" placeholder="选择可获取权限" filterable>
+          <el-select v-model="scope.row.access" size="mini" placeholder="选择可获取权限" filterable @change="test(scope.row.access)">
             <el-option key="user" label="user" value="user"></el-option>
             <el-option key="root" label="root" value="root"></el-option>
           </el-select>
@@ -93,6 +93,9 @@ export default {
     this.fetchData();
   },
   methods: {
+    test(data) {
+      console.log(data);
+    },
     fetchData() {
       if (this.curSubnet) {
         let processSet = new Set();
@@ -179,7 +182,7 @@ export default {
         } else {
           this.privilegeEscalation[i].cost = cost;
         }
-        if(this.privilegeEscalation[i].access == '') {
+        if(this.privilegeEscalation[i].access === '') {
           result += `序号${i+1}：可获取访问权限不能为空</br>`;
         }
       }

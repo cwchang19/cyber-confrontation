@@ -25,7 +25,7 @@
       </el-col>
     </el-row>
 
-    <div class="msg">
+    <!-- <div class="msg">
       <div style="text-align: right;">
         {{ `Step ${debugData && debugData.steps}: ${debugData && debugData.action}` }}
       </div>
@@ -35,7 +35,7 @@
       <div style="text-align: right;">
         {{ `Done: ${debugData && debugData.done}` }}
       </div>
-    </div>
+    </div> -->
 
   </div>
 </template>
@@ -122,6 +122,7 @@ export default {
       }
     },
     debugData: function (val) {
+      console.log(val);
       this.solve(val);
     }
   },
@@ -151,6 +152,7 @@ export default {
         this.lastTargetDom.classList.remove('target-host');
       }
       if(data) {
+        console.log(`host${data.subnetNum}-${data.hostNum}`);
         this.lastTargetDom = this.$refs[`host${data.subnetNum}-${data.hostNum}`][0];
         this.lastTargetDom.classList.add('target-host');
         // console.log(this.lastTargetDom);

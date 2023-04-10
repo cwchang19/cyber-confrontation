@@ -128,6 +128,13 @@ export const constantRoutes = [
         hidden: true,
       },
       {
+        path: 'result/:str',
+        component: () => import('@/views/training/result'),
+        name: 'ResultTraining',
+        meta: { title: '结果', activeMenu: '/training/index' },
+        hidden: true,
+      },
+      {
         path: 'index',
         component: () => import('@/views/training/index'),
         name: 'TrainingList',

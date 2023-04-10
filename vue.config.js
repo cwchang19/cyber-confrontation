@@ -35,6 +35,7 @@ module.exports = {
       '/api': {
         // target: 'http://101.43.40.128',
         target: 'http://10.200.152.9:8088',
+        // target: 'http://172.23.148.57:8088',
         changeOrigin: true,
         ws: true,
       }
